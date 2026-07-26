@@ -1,0 +1,15 @@
+---
+title: Development workflow
+description: Docs-first rules for implementation changes.
+type: guide
+---
+
+Product and bugfix changes need accepted specifications and a ready plan before
+code. Maintenance needs a ready plan. Docs-only edits under `content/docs/` or
+`templates/` (plus root `README.md` / `CHANGELOG.md`) are exempt from a prior
+plan. There is no general bypass.
+
+Implementation PRs must cite a plan that already exists on the PR base with
+`stage: ready|active` and covering `codeAreas`:
+
+`Plan: docs/content/docs/plans/plan-….mdx`

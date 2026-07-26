@@ -1,0 +1,9 @@
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+docs/.source/
+*.tsbuildinfo
+.DS_Store
+.env*
+!.env.example

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "1.0",
+  "sharedProperties": [
+    { "name": "Title", "type": "title" },
+    { "name": "OMD ID", "type": "rich_text" },
+    { "name": "Summary", "type": "rich_text" }
+  ],
+  "schemas": {
+    "glossary": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" }
+      ],
+      "relations": []
+    },
+    "models": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" }
+      ],
+      "relations": []
+    },
+    "policies": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" }
+      ],
+      "relations": []
+    },
+    "prds": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" },
+        {
+          "name": "Status",
+          "type": "select",
+          "options": ["draft", "active", "done"]
+        },
+        { "name": "Stories", "type": "relation", "relationSchema": "stories" }
+      ],
+      "relations": [{ "from": "Stories", "toSchema": "stories", "toDatabaseKey": "dbs.stories" }]
+    },
+    "stories": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" },
+        { "name": "PRDs", "type": "relation", "relationSchema": "prds" }
+      ],
+      "relations": [{ "from": "PRDs", "toSchema": "prds", "toDatabaseKey": "dbs.prds" }]
+    },
+    "plans": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" },
+        {
+          "name": "Stage",
+          "type": "select",
+          "options": ["draft", "ready", "active", "done", "superseded"]
+        },
+        {
+          "name": "changeType",
+          "type": "select",
+          "options": ["product", "bugfix", "maintenance"]
+        },
+        { "name": "codeAreas", "type": "multi_select" },
+        { "name": "PRD", "type": "relation", "relationSchema": "prds" },
+        { "name": "Stories", "type": "relation", "relationSchema": "stories" },
+        { "name": "Specs", "type": "relation", "relationSchema": "specs", "toDatabaseKey": "dbs.data-model" },
+        {
+          "name": "Specs (System model)",
+          "type": "relation",
+          "relationSchema": "specs",
+          "toDatabaseKey": "dbs.system-model"
+        }
+      ],
+      "relations": [
+        { "from": "PRD", "toSchema": "prds", "toDatabaseKey": "dbs.prds" },
+        { "from": "Stories", "toSchema": "stories", "toDatabaseKey": "dbs.stories" },
+        { "from": "Specs", "toSchema": "specs", "toDatabaseKey": "dbs.data-model" },
+        {
+          "from": "Specs (System model)",
+          "toSchema": "specs",
+          "toDatabaseKey": "dbs.system-model"
+        }
+      ]
+    },
+    "specs": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" },
+        {
+          "name": "Stage",
+          "type": "select",
+          "options": ["draft", "accepted", "superseded"]
+        }
+      ],
+      "relations": []
+    },
+    "adrs": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "Summary", "type": "rich_text" },
+        {
+          "name": "Stage",
+          "type": "select",
+          "options": ["accepted", "locked", "superseded"]
+        }
+      ],
+      "relations": []
+    }
+  }
+}
