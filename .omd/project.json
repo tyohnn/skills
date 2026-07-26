@@ -11,7 +11,7 @@
   },
   "paths": {
     "docs": "docs",
-    "ui": "packages/ui",
+    "ui": "",
     "content": "docs/content/docs",
     "templates": "docs/templates"
   },
