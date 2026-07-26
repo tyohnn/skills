@@ -6,6 +6,9 @@ Monorepo for agent skills. Canonical skill folders live under `skills/<slug>/`.
 `npx skills add …` (and package managers for non-skill packages). skills.sh does
 not read `skill.yaml`; our scripts translate it.
 
+Content SSOT is Notion (see `.omd/project.json`). There is no local docs app or
+`@oh-my-docs/ui` package in this repo.
+
 ## Layout
 
 ```text
