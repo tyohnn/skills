@@ -55,23 +55,37 @@ export function adoptNotionProject(options) {
   contract.ownership.omdGenerated = ['.omd/project.json', '.omd/schemas/'];
   contract.ownership.omdManaged = ['AGENTS.md', 'CLAUDE.md'];
 
+  const homeMapping = {
+    id: planned.manifest.root.rootPageId,
+    type: 'page',
+    parentKey: 'root',
+    url: planned.manifest.root.rootPageUrl,
+  };
+
   let provider;
   if (options.results) {
     provider = recordResult({
+      previous: { mappings: { 'pages.home': homeMapping } },
       manifest: planned.manifest,
       manifestDigest: planned.manifestDigest,
       results: options.results,
     });
+    if (!provider.notion.mappings['pages.home']) {
+      provider.notion.mappings['pages.home'] = homeMapping;
+    }
   } else {
+    const pendingOperationIds = planned.manifest.operations
+      .map((op) => op.id)
+      .filter((id) => id !== 'ensure:pages.home');
     provider = {
       notion: {
-        schemaVersion: '1.0',
+        schemaVersion: '1.1',
         schemaDigest: planned.manifestDigest,
         lastObservedAt: new Date().toISOString(),
         lastManifestDigest: planned.manifestDigest,
-        mappings: {},
-        pendingOperationIds: planned.manifest.operations.map((op) => op.id),
-        completedOperationIds: [],
+        mappings: { 'pages.home': homeMapping },
+        pendingOperationIds,
+        completedOperationIds: ['ensure:pages.home'],
       },
     };
   }
