@@ -52,14 +52,19 @@
   "files": {},
   "provider": {
     "notion": {
-      "schemaVersion": "1.0",
-      "schemaDigest": "97e50f001a617108a6a8f5b261a1d9ae655ee4f544b77c93144e66788eb2f975",
-      "lastObservedAt": "2026-07-26T06:50:23.576Z",
-      "lastManifestDigest": "97e50f001a617108a6a8f5b261a1d9ae655ee4f544b77c93144e66788eb2f975",
-      "mappings": {},
+      "schemaVersion": "1.1",
+      "schemaDigest": "2e1be0b1517a1c113145331496c927fc82deac78b1d970fb0fcfd9e152ebe975",
+      "lastObservedAt": "2026-07-26T07:04:25.540Z",
+      "lastManifestDigest": "2e1be0b1517a1c113145331496c927fc82deac78b1d970fb0fcfd9e152ebe975",
+      "mappings": {
+        "pages.home": {
+          "id": "3a9346da-c456-8024-802c-f881896d3bd3",
+          "type": "page",
+          "parentKey": "root",
+          "url": "https://app.notion.com/p/paxhumana/tyohnn-skills-3a9346dac4568024802cf881896d3bd3"
+        }
+      },
       "pendingOperationIds": [
-        "ensure:toggles.sources",
-        "ensure:pages.home",
         "ensure:pages.vision",
         "ensure:pages.starting",
         "ensure:pages.workflow",
@@ -103,7 +108,6 @@
         "relation:dbs.plans:Stories:dbs.stories",
         "relation:dbs.plans:Specs:dbs.data-model",
         "relation:dbs.plans:Specs (System model):dbs.system-model",
-        "body:toggles.sources",
         "body:pages.home",
         "body:pages.vision",
         "body:pages.starting",
@@ -124,7 +128,9 @@
         "body:pages.plans",
         "body:pages.adrs"
       ],
-      "completedOperationIds": []
+      "completedOperationIds": [
+        "ensure:pages.home"
+      ]
     }
   }
 }
