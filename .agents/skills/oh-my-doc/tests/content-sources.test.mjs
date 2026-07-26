@@ -24,17 +24,21 @@ const templateRoot = join(skillRoot, 'templates/default');
 const schemasDir = join(skillRoot, 'schemas');
 const dogfoodRoot = '3a7346da-c456-800a-85f4-cae724925f98';
 
-test('references Notion templates load from references/ (not ref/)', () => {
+test('references Notion templates load details-toggle-on-home IA', () => {
   const refs = loadNotionReferences(skillRoot);
-  assert.equal(refs.iaGraph.schemaVersion, '1.1');
-  assert.equal(refs.iaGraph.sourcesStrategy, 'sources-page-parent');
-  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'toggles.sources'));
-  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.home' && o.parent === 'toggles.sources'));
+  assert.equal(refs.iaGraph.schemaVersion, '1.3');
+  assert.equal(refs.iaGraph.sourcesStrategy, 'details-toggle-on-home');
+  assert.equal(refs.iaGraph.sourcesToggle.kind, 'details');
+  assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'toggles.sources'));
+  assert.ok(
+    refs.iaGraph.objects.some(
+      (o) => o.key === 'pages.home' && o.role === 'home' && o.suppliedAsRoot === true,
+    ),
+  );
+  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.vision' && o.parent === 'pages.home'));
   assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.prds' && o.inlineDatabase === 'dbs.prds'));
   assert.ok(refs.catalogSchemas.schemas.plans.relations.some((r) => r.from === 'Specs (System model)'));
-  assert.ok(refs.catalogSchemas.schemas.prds);
   assert.match(refs.sidebar, /yellow_bg/);
-  assert.match(refs.sidebar, /all/i);
   assert.match(refs.manualChecklist, /Full width/);
 });
 
@@ -47,7 +51,7 @@ test('parseNotionRoot accepts dashed id and URL', () => {
   assert.equal(fromUrl.rootPageId, dogfoodRoot);
 });
 
-test('local adopt writes explicit contentSource.local', () => {
+test('local adopt writes explicit contentSource.local and packages/docs-ui', () => {
   const root = mkdtempSync(join(tmpdir(), 'omd-local-ssot-'));
   try {
     const result = adoptProject({
@@ -58,6 +62,11 @@ test('local adopt writes explicit contentSource.local', () => {
       force: true,
     });
     assert.equal(result.contract.contentSource.ssot, 'local');
+    assert.equal(result.contract.paths.ui, 'packages/docs-ui');
+    assert.ok(existsSync(join(root, 'packages/docs-ui/package.json')));
+    assert.equal(existsSync(join(root, 'packages/ui')), false);
+    assert.equal(existsSync(join(root, '.cursor/skills/oh-my-doc/SKILL.md')), false);
+    assert.equal(existsSync(join(root, '.agents/skills/oh-my-doc/SKILL.md')), false);
     const project = JSON.parse(readFileSync(join(root, '.omd/project.json'), 'utf8'));
     assert.equal(normalizeContentSource(project).ssot, 'local');
     assert.equal(normalizeContentSource({}).ssot, 'local');
@@ -66,15 +75,32 @@ test('local adopt writes explicit contentSource.local', () => {
   }
 });
 
-test('notion planProvision is deterministic and idempotent with mappings', () => {
+test('notion planProvision uses details toggle and no sources page ensure', () => {
   const first = planProvision({ skillRoot, notionRoot: dogfoodRoot });
   const second = planProvision({ skillRoot, notionRoot: dogfoodRoot });
   assert.equal(first.manifestDigest, second.manifestDigest);
+  assert.equal(first.manifest.sourcesStrategy, 'details-toggle-on-home');
   assert.ok(first.manifest.operations.length > 10);
-  assert.ok(first.manifest.operations.every((op) => op.expectedParentKey));
+  assert.ok(
+    !first.manifest.operations.some(
+      (op) => op.op === 'ensure_page' && (op.key === 'toggles.sources' || op.title === '데이터 원본'),
+    ),
+  );
+  const mapHome = first.manifest.operations.find((op) => op.op === 'map_supplied_root');
+  assert.ok(mapHome);
+  assert.equal(mapHome.key, 'pages.home');
+  const sourcesIndex = first.manifest.operations.find((op) => op.op === 'write_root_sources_index');
+  assert.ok(sourcesIndex);
+  assert.equal(sourcesIndex.payload.strategy, 'details-toggle-on-home');
+  assert.equal(sourcesIndex.expectedParentKey, 'pages.home');
+  assert.match(sourcesIndex.payload.content, /<details>/);
+  assert.match(sourcesIndex.payload.content, /데이터 원본/);
+
   const bodyOps = first.manifest.operations.filter((op) => op.op === 'write_page_body');
-  assert.ok(bodyOps.length >= 19);
-  assert.ok(bodyOps.every((op) => op.payload?.content || op.payload?.template));
+  assert.ok(bodyOps.length >= 18);
+  const homeBody = bodyOps.find((op) => op.key === 'pages.home');
+  assert.ok(homeBody);
+  assert.match(String(homeBody.payload.content), /<details>/);
   assert.ok(
     bodyOps
       .filter((op) => op.key.startsWith('pages.'))
@@ -82,15 +108,15 @@ test('notion planProvision is deterministic and idempotent with mappings', () =>
   );
 
   const ensureOps = first.manifest.operations.filter(
-    (op) => op.op === 'ensure_page' || op.op === 'ensure_database',
+    (op) => op.op === 'ensure_page' || op.op === 'ensure_database' || op.op === 'map_supplied_root',
   );
   const results = ensureOps.map((op) => ({
     operationId: op.id,
     status: /** @type {'completed'} */ ('completed'),
     object: {
       key: op.key,
-      id: `id-${op.key}`,
-      type: op.op === 'ensure_page' ? 'page' : 'database',
+      id: op.op === 'map_supplied_root' ? dogfoodRoot : `id-${op.key}`,
+      type: op.op === 'ensure_database' ? 'database' : 'page',
       parentKey: op.expectedParentKey,
     },
   }));
@@ -102,10 +128,18 @@ test('notion planProvision is deterministic and idempotent with mappings', () =>
   const replay = planProvision({
     skillRoot,
     notionRoot: dogfoodRoot,
-    mappings: provider.notion.mappings,
+    mappings: {
+      'pages.home': {
+        id: dogfoodRoot,
+        type: 'page',
+        parentKey: 'root',
+        url: `https://www.notion.so/${dogfoodRoot.replaceAll('-', '')}`,
+      },
+      ...provider.notion.mappings,
+    },
   });
   for (const op of replay.manifest.operations.filter(
-    (o) => o.op === 'ensure_page' || o.op === 'ensure_database',
+    (o) => o.op === 'ensure_page' || o.op === 'ensure_database' || o.op === 'map_supplied_root',
   )) {
     assert.equal(op.action, 'skip_or_update');
     assert.ok(op.mappedId);
@@ -113,9 +147,12 @@ test('notion planProvision is deterministic and idempotent with mappings', () =>
 
   const snapshot = {
     rootPageId: dogfoodRoot,
-    objects: Object.fromEntries(
-      Object.entries(provider.notion.mappings).map(([key, value]) => [key, value]),
-    ),
+    objects: {
+      'pages.home': { id: dogfoodRoot, type: 'page', parentKey: 'root' },
+      ...Object.fromEntries(
+        Object.entries(provider.notion.mappings).map(([key, value]) => [key, value]),
+      ),
+    },
     inline: Object.fromEntries(
       first.manifest.operations
         .filter((op) => op.op === 'set_inline')
@@ -147,9 +184,17 @@ test('sidebar renderer highlights active nested section', () => {
     childBlocks: ['<database url="https://app.notion.com/p/db" inline="true">Data model</database>'],
   });
   assert.match(md, /<columns>/);
-  assert.match(md, /pages\.spec.*yellow_bg/s);
-  assert.match(md, /pages\.data-model/);
-  assert.match(md, /inline="true"/);
+  assert.match(md, /<details>/);
+  assert.match(
+    md,
+    /<summary><mention-page url="https:\/\/app\.notion\.com\/p\/pages\.spec"\/> \{color="yellow_bg"\}<\/summary>/,
+  );
+  assert.match(
+    md,
+    /\t\t\t\t- <mention-page url="https:\/\/app\.notion\.com\/p\/pages\.data-model"\/> \{color="yellow_bg"\}/,
+  );
+  assert.match(md, /ratio="80">[\s\S]*inline="true"[\s\S]*<\/column>\s*<\/columns>/);
+  assert.doesNotMatch(md, /<\/columns>\s*<database/);
 });
 
 test('validateMapping rejects wrong type/parent', () => {
@@ -191,13 +236,15 @@ test('adoptNotion dry-run returns manifest without writing', () => {
     assert.equal(result.dryRun, true);
     assert.equal(result.contentSource.ssot, 'notion');
     assert.ok(result.manifest.operations.length > 0);
+    assert.equal(result.contract.ui.distribution, 'none');
     assert.equal(existsSync(join(root, '.omd/project.json')), false);
+    assert.equal(existsSync(join(root, 'packages/docs-ui')), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test('adoptNotion --yes writes contract and pending operations', () => {
+test('adoptNotion --yes writes contract with pages.home mapping and no UI scaffold', () => {
   const root = mkdtempSync(join(tmpdir(), 'omd-notion-write-'));
   try {
     const result = adoptNotionProject({
@@ -209,11 +256,20 @@ test('adoptNotion --yes writes contract and pending operations', () => {
     });
     assert.equal(result.ok, true);
     assert.ok(existsSync(join(root, '.omd/project.json')));
+    assert.equal(existsSync(join(root, 'packages/docs-ui')), false);
+    assert.equal(existsSync(join(root, 'docs')), false);
     const project = JSON.parse(readFileSync(join(root, '.omd/project.json'), 'utf8'));
     assert.equal(project.contentSource.ssot, 'notion');
     assert.equal(project.contentSource.notion.rootPageId, dogfoodRoot);
+    assert.equal(project.ui.distribution, 'none');
     const state = JSON.parse(readFileSync(join(root, '.omd/state.json'), 'utf8'));
+    assert.equal(state.provider.notion.mappings['pages.home'].id, dogfoodRoot);
     assert.ok(state.provider.notion.pendingOperationIds.length > 0);
+    assert.ok(!state.provider.notion.pendingOperationIds.includes('ensure:pages.home'));
+    const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+    assert.match(agents, /contentSource\.ssot/);
+    assert.match(agents, /Documentation is always first/);
+    assert.match(agents, /<!-- oh-my-docs:start -->/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

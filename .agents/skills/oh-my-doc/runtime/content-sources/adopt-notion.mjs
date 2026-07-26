@@ -5,7 +5,10 @@ import {
   releaseLock,
   writeOmdContract,
 } from '../omd-contract.mjs';
+import { applyFileOperations } from '../fs-ops.mjs';
+import { planSetup } from '../plan-setup.mjs';
 import { capabilityBlockers, planProvision, recordResult } from './notion.mjs';
+import { parseNotionRoot } from './notion-root.mjs';
 
 /**
  * Plan or record a Notion SSOT adopt.
@@ -29,6 +32,7 @@ export function adoptNotionProject(options) {
     skillRoot: options.skillRoot,
     notionRoot: options.notionRoot,
   });
+  const root = parseNotionRoot(options.notionRoot);
 
   const blockers = [
     ...planned.blockers,
@@ -51,9 +55,27 @@ export function adoptNotionProject(options) {
     },
   });
 
-  // Notion v1 does not scaffold a local Fumadocs mirror.
+  // Notion v1 does not scaffold a local Fumadocs mirror or UI vocabulary.
+  delete contract.paths.docs;
+  delete contract.paths.ui;
+  delete contract.paths.content;
+  delete contract.paths.templates;
+  contract.paths = { notionRoot: planned.manifest.root.rootPageUrl };
+  contract.ui = {
+    base: 'none',
+    distribution: 'none',
+    shellDependencies: [],
+    vocabulary: [],
+  };
   contract.ownership.omdGenerated = ['.omd/project.json', '.omd/schemas/'];
   contract.ownership.omdManaged = ['AGENTS.md', 'CLAUDE.md'];
+
+  const homeMapping = {
+    id: root.rootPageId,
+    type: 'page',
+    parentKey: 'root',
+    url: root.rootPageUrl,
+  };
 
   let provider;
   if (options.results) {
@@ -62,21 +84,33 @@ export function adoptNotionProject(options) {
       manifestDigest: planned.manifestDigest,
       results: options.results,
     });
+    provider.notion.mappings['pages.home'] = {
+      ...homeMapping,
+      ...provider.notion.mappings['pages.home'],
+    };
   } else {
+    const pendingOperationIds = planned.manifest.operations
+      .filter((op) => op.op !== 'map_supplied_root')
+      .map((op) => op.id);
     provider = {
       notion: {
         schemaVersion: '1.0',
         schemaDigest: planned.manifestDigest,
         lastObservedAt: new Date().toISOString(),
         lastManifestDigest: planned.manifestDigest,
-        mappings: {},
-        pendingOperationIds: planned.manifest.operations.map((op) => op.id),
-        completedOperationIds: [],
+        mappings: {
+          'pages.home': homeMapping,
+        },
+        pendingOperationIds,
+        completedOperationIds: planned.manifest.operations
+          .filter((op) => op.op === 'map_supplied_root')
+          .map((op) => op.id),
       },
     };
   }
 
   const state = createDefaultState(contract, { provider });
+  const setupPlan = planSetup({ cwd: options.cwd, force: true });
 
   if (options.dryRun) {
     return {
@@ -89,6 +123,7 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
+      operations: setupPlan.operations,
       applied: null,
       manualChecklist: planned.manifest.manualChecklist,
     };
@@ -105,6 +140,7 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
+      operations: setupPlan.operations,
       applied: null,
       manualChecklist: planned.manifest.manualChecklist,
     };
@@ -113,6 +149,10 @@ export function adoptNotionProject(options) {
   acquireLock(options.cwd);
   try {
     writeOmdContract(options.cwd, contract, state, options.schemasDir);
+    const appliedMarkers = applyFileOperations(options.cwd, setupPlan.operations, {
+      dryRun: false,
+      force: true,
+    });
     return {
       ok: true,
       dryRun: false,
@@ -123,7 +163,14 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
-      applied: { wrote: ['.omd/project.json', '.omd/state.json'] },
+      operations: setupPlan.operations,
+      applied: {
+        wrote: [
+          '.omd/project.json',
+          '.omd/state.json',
+          ...appliedMarkers.applied.map((op) => op.path),
+        ],
+      },
       manualChecklist: planned.manifest.manualChecklist,
       next: 'Execute manifest.operations via Notion MCP, then re-run with results or sync to record mappings.',
     };

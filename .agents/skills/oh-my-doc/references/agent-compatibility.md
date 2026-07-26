@@ -14,8 +14,16 @@ wrappers around the same `oh-my-doc` skill.
 Preferred install:
 
 ```bash
-npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
+npx skills add tyohnn/oh-my-docs --skill oh-my-doc -y
 ```
+
+`skills add` defaults to **symlink** installs: one canonical copy (typically
+under `.agents/skills/oh-my-doc` or `~/.agents/skills/oh-my-doc`) with agent
+paths linking to it. Prefer `-a cursor` (or the current host) when only one
+agent is needed. Avoid `--copy` unless symlinks are unsupported.
+
+Adopt updates `AGENTS.md` / `CLAUDE.md` markers only. It must not copy the full
+skill tree into all three project agent directories.
 
 Canonical skill content lives at `skills/oh-my-doc` and is mirrored into optional
 host plugin wrappers under `plugins/{cursor,codex,claude-code}/skills/oh-my-doc`.
@@ -26,8 +34,12 @@ Agents should call the bundled Node runtime:
 
 ```bash
 node <skill>/scripts/omd.mjs inspect --json
-node <skill>/scripts/omd.mjs adopt --yes --json
+node <skill>/scripts/omd.mjs adopt --ssot local --yes --json
+node <skill>/scripts/omd.mjs adopt --ssot notion --notion-root <url-or-id> --dry-run --json
 node <skill>/scripts/omd.mjs check --json
 ```
+
+Before the first adopt, ask the user to choose SSOT (`local` docs app vs
+`notion`). Greenfield adopt without `--ssot` fails with `needsSsot`.
 
 Do not tell users to run a public npm CLI.

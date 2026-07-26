@@ -39,7 +39,7 @@ export function inspectProject(options) {
     defaultContract: createDefaultProject(project.root, {
       mode,
       docsPath: project.docsPath ?? 'docs',
-      uiPath: options.uiPath ?? project.uiPath ?? 'packages/ui',
+      uiPath: options.uiPath ?? project.uiPath ?? 'packages/docs-ui',
     }),
   };
 }

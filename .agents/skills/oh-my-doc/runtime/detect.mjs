@@ -86,7 +86,7 @@ function findUiPath(root, preferred) {
         if (existsSync(preferredPkg))
             return preferred;
     }
-    const candidates = ['packages/ui', 'packages/docs-ui'];
+    const candidates = ['packages/docs-ui', 'packages/ui'];
     for (const candidate of candidates) {
         const pkgPath = join(root, candidate, 'package.json');
         if (!existsSync(pkgPath))

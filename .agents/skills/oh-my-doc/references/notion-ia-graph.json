@@ -1,31 +1,25 @@
 {
-  "schemaVersion": "1.1",
-  "sourcesStrategy": "sources-page-parent",
+  "schemaVersion": "1.3",
+  "sourcesStrategy": "details-toggle-on-home",
   "sourcesToggle": {
     "key": "toggles.sources",
     "title": "데이터 원본",
-    "parent": "root",
-    "kind": "page",
-    "note": "Nesting managed pages under a details toggle materializes a real parent page. Treat that page as the canonical parent of top-level managed pages."
+    "parent": "pages.home",
+    "kind": "details",
+    "note": "Write a details toggle on Home. Do not ensure_page a sources container. Top-level managed pages parent under pages.home."
   },
   "objects": [
-    {
-      "key": "toggles.sources",
-      "kind": "page",
-      "title": "데이터 원본",
-      "parent": "root",
-      "role": "sources"
-    },
     {
       "key": "pages.home",
       "kind": "page",
       "title": "Home",
-      "parent": "toggles.sources",
-      "role": "home"
+      "parent": "root",
+      "role": "home",
+      "suppliedAsRoot": true
     },
-    { "key": "pages.vision", "kind": "page", "title": "Vision", "parent": "toggles.sources" },
-    { "key": "pages.starting", "kind": "page", "title": "Start here", "parent": "toggles.sources" },
-    { "key": "pages.workflow", "kind": "page", "title": "Workflow", "parent": "toggles.sources" },
+    { "key": "pages.vision", "kind": "page", "title": "Vision", "parent": "pages.home" },
+    { "key": "pages.starting", "kind": "page", "title": "Start here", "parent": "pages.home" },
+    { "key": "pages.workflow", "kind": "page", "title": "Workflow", "parent": "pages.home" },
     {
       "key": "pages.workflow-planning",
       "kind": "page",
@@ -38,7 +32,7 @@
       "title": "Development",
       "parent": "pages.workflow"
     },
-    { "key": "pages.domain", "kind": "page", "title": "Domain", "parent": "toggles.sources" },
+    { "key": "pages.domain", "kind": "page", "title": "Domain", "parent": "pages.home" },
     {
       "key": "pages.glossary",
       "kind": "page",
@@ -84,7 +78,7 @@
       "inline": true,
       "schema": "policies"
     },
-    { "key": "pages.planning", "kind": "page", "title": "Planning", "parent": "toggles.sources" },
+    { "key": "pages.planning", "kind": "page", "title": "Planning", "parent": "pages.home" },
     {
       "key": "pages.prds",
       "kind": "page",
@@ -115,7 +109,7 @@
       "inline": true,
       "schema": "stories"
     },
-    { "key": "pages.spec", "kind": "page", "title": "Spec", "parent": "toggles.sources" },
+    { "key": "pages.spec", "kind": "page", "title": "Spec", "parent": "pages.home" },
     {
       "key": "pages.data-model",
       "kind": "page",
@@ -146,12 +140,11 @@
       "inline": true,
       "schema": "specs"
     },
-    { "key": "pages.cli", "kind": "page", "title": "CLI", "parent": "pages.spec" },
     {
       "key": "pages.plans",
       "kind": "page",
       "title": "Plans",
-      "parent": "toggles.sources",
+      "parent": "pages.home",
       "inlineDatabase": "dbs.plans"
     },
     {
@@ -166,7 +159,7 @@
       "key": "pages.adrs",
       "kind": "page",
       "title": "ADRs",
-      "parent": "toggles.sources",
+      "parent": "pages.home",
       "inlineDatabase": "dbs.adrs"
     },
     {
@@ -187,7 +180,6 @@
       "pages.domain",
       "pages.planning",
       "pages.spec",
-      "pages.prds",
       "pages.plans",
       "pages.adrs"
     ],
@@ -195,7 +187,7 @@
       "pages.workflow": ["pages.workflow-planning", "pages.development"],
       "pages.domain": ["pages.glossary", "pages.models", "pages.policies"],
       "pages.planning": ["pages.prds", "pages.stories"],
-      "pages.spec": ["pages.data-model", "pages.system-model", "pages.cli"]
+      "pages.spec": ["pages.data-model", "pages.system-model"]
     }
   },
   "chrome": {

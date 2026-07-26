@@ -35,7 +35,8 @@ Catalog folders (`domain/glossary`, `domain/models`, `domain/policies`,
 `spec/system-model`) stay index-only in the sidebar. Each document is registered
 in its sibling `meta.json`. Domain’s sidebar shows Glossary, Models, and
 Policies; Spec’s sidebar shows the boundary entries (`data-model`,
-`system-model`, `cli`). Those catalogs hide detail pages the same way PRDs do.
+`system-model`). Those catalogs hide detail pages the same way PRDs do.
+CLI is not part of the default Spec IA.
 
 Browser pages expose a processed Markdown twin at the same URL with `.md`
 appended so agents can read the identical SSOT without scraping HTML.

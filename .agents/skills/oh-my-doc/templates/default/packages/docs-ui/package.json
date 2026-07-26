@@ -33,9 +33,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ssota-labs/oh-my-docs.git",
-    "directory": "packages/ui"
+    "directory": "packages/docs-ui"
   },
-  "homepage": "https://github.com/ssota-labs/oh-my-docs/tree/main/packages/ui",
+  "homepage": "https://github.com/ssota-labs/oh-my-docs/tree/main/packages/docs-ui",
   "license": "MIT",
   "engines": {
     "node": ">=24.0.0"

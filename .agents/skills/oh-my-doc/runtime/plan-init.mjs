@@ -117,7 +117,7 @@ function projectName(state) {
  * Template files are copied unless they conflict; AGENTS/CLAUDE use marker merge.
  */
 export function planInit(options, templateRoot) {
-    const uiPath = options.uiPath ?? 'packages/ui';
+    const uiPath = options.uiPath ?? 'packages/docs-ui';
     const force = options.force === true;
     const project = detectProject(options.cwd, { uiPath });
     const packageManager = options.packageManager ?? project.packageManager ?? 'pnpm';
@@ -152,7 +152,7 @@ export function planInit(options, templateRoot) {
         ? readFileSync(templateGitignore, 'utf8')
         : gitignore();
     operations.push(decideWrite(project.root, '.gitignore', gitignoreContent, 'scaffold gitignore', force));
-    // Copy template tree except root meta files handled above and packages/ui remap.
+    // Copy template tree except root meta files handled above and packages/docs-ui remap.
     const templateFiles = listFilesRecursive(templateRoot);
     for (const absolute of templateFiles) {
         let rel = relativePosix(templateRoot, absolute);
@@ -162,8 +162,8 @@ export function planInit(options, templateRoot) {
             continue;
         if (rel === 'AGENTS.md' || rel === 'CLAUDE.md')
             continue;
-        if (rel.startsWith('packages/ui/') || rel === 'packages/ui') {
-            rel = rel.replace(/^packages\/ui/, uiPath);
+        if (rel.startsWith('packages/docs-ui/') || rel === 'packages/docs-ui') {
+            rel = rel.replace(/^packages\/docs-ui/, uiPath);
         }
         // Prefer docs/ as the product docs app path in scaffolds.
         const content = readFileSync(absolute, 'utf8');

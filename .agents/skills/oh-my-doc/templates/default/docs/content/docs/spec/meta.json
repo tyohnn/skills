@@ -1,6 +1,6 @@
 {
   "title": "Specifications",
-  "pages": ["index", "data-model", "system-model", "cli"],
+  "pages": ["index", "data-model", "system-model"],
   "collapsible": true,
   "defaultOpen": true
 }

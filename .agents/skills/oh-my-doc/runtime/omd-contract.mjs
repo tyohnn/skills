@@ -148,7 +148,7 @@ export function createDefaultProject(root, options = {}) {
     contentSource,
     paths: {
       docs: options.docsPath ?? 'docs',
-      ui: options.uiPath ?? 'packages/ui',
+      ui: options.uiPath ?? 'packages/docs-ui',
       content: `${options.docsPath ?? 'docs'}/content/docs`,
       templates: `${options.docsPath ?? 'docs'}/templates`,
     },
