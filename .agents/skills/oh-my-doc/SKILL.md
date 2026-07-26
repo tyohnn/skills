@@ -68,6 +68,12 @@ workflow. Missing `contentSource` means `local`.
 ## Hard rules
 
 - Never invent product requirements from code alone.
+- Read `.omd/project.json` `contentSource.ssot` and treat **one** handbook SSOT
+  as authoritative (`local` docs tree or Notion — never both).
+- Decisions, agreements, and open questions that should outlive the chat must be
+  written into that SSOT; catalog rows go in the catalog store (Notion DB /
+  local `meta.json` folders), not ad-hoc section children. Plans go in Plans
+  (`dbs.plans`), not under Planning.
 - Never skip the docs-first gate for product, bugfix, or maintenance work.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
