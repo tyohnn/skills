@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "1.1",
+  "sourcesStrategy": "sources-page-parent",
+  "sourcesToggle": {
+    "key": "toggles.sources",
+    "title": "데이터 원본",
+    "parent": "root",
+    "kind": "page",
+    "note": "Nesting managed pages under a details toggle materializes a real parent page. Treat that page as the canonical parent of top-level managed pages."
+  },
+  "objects": [
+    {
+      "key": "toggles.sources",
+      "kind": "page",
+      "title": "데이터 원본",
+      "parent": "root",
+      "role": "sources"
+    },
+    {
+      "key": "pages.home",
+      "kind": "page",
+      "title": "Home",
+      "parent": "toggles.sources",
+      "role": "home"
+    },
+    { "key": "pages.vision", "kind": "page", "title": "Vision", "parent": "toggles.sources" },
+    { "key": "pages.starting", "kind": "page", "title": "Start here", "parent": "toggles.sources" },
+    { "key": "pages.workflow", "kind": "page", "title": "Workflow", "parent": "toggles.sources" },
+    {
+      "key": "pages.workflow-planning",
+      "kind": "page",
+      "title": "Workflow Planning",
+      "parent": "pages.workflow"
+    },
+    {
+      "key": "pages.development",
+      "kind": "page",
+      "title": "Development",
+      "parent": "pages.workflow"
+    },
+    { "key": "pages.domain", "kind": "page", "title": "Domain", "parent": "toggles.sources" },
+    {
+      "key": "pages.glossary",
+      "kind": "page",
+      "title": "Glossary",
+      "parent": "pages.domain",
+      "inlineDatabase": "dbs.glossary"
+    },
+    {
+      "key": "dbs.glossary",
+      "kind": "database",
+      "title": "Glossary",
+      "parent": "pages.glossary",
+      "inline": true,
+      "schema": "glossary"
+    },
+    {
+      "key": "pages.models",
+      "kind": "page",
+      "title": "Models",
+      "parent": "pages.domain",
+      "inlineDatabase": "dbs.models"
+    },
+    {
+      "key": "dbs.models",
+      "kind": "database",
+      "title": "Models",
+      "parent": "pages.models",
+      "inline": true,
+      "schema": "models"
+    },
+    {
+      "key": "pages.policies",
+      "kind": "page",
+      "title": "Policies",
+      "parent": "pages.domain",
+      "inlineDatabase": "dbs.policies"
+    },
+    {
+      "key": "dbs.policies",
+      "kind": "database",
+      "title": "Policies",
+      "parent": "pages.policies",
+      "inline": true,
+      "schema": "policies"
+    },
+    { "key": "pages.planning", "kind": "page", "title": "Planning", "parent": "toggles.sources" },
+    {
+      "key": "pages.prds",
+      "kind": "page",
+      "title": "PRDs",
+      "parent": "pages.planning",
+      "inlineDatabase": "dbs.prds"
+    },
+    {
+      "key": "dbs.prds",
+      "kind": "database",
+      "title": "PRDs",
+      "parent": "pages.prds",
+      "inline": true,
+      "schema": "prds"
+    },
+    {
+      "key": "pages.stories",
+      "kind": "page",
+      "title": "Stories",
+      "parent": "pages.planning",
+      "inlineDatabase": "dbs.stories"
+    },
+    {
+      "key": "dbs.stories",
+      "kind": "database",
+      "title": "Stories",
+      "parent": "pages.stories",
+      "inline": true,
+      "schema": "stories"
+    },
+    { "key": "pages.spec", "kind": "page", "title": "Spec", "parent": "toggles.sources" },
+    {
+      "key": "pages.data-model",
+      "kind": "page",
+      "title": "Data model",
+      "parent": "pages.spec",
+      "inlineDatabase": "dbs.data-model"
+    },
+    {
+      "key": "dbs.data-model",
+      "kind": "database",
+      "title": "Data model",
+      "parent": "pages.data-model",
+      "inline": true,
+      "schema": "specs"
+    },
+    {
+      "key": "pages.system-model",
+      "kind": "page",
+      "title": "System model",
+      "parent": "pages.spec",
+      "inlineDatabase": "dbs.system-model"
+    },
+    {
+      "key": "dbs.system-model",
+      "kind": "database",
+      "title": "System model",
+      "parent": "pages.system-model",
+      "inline": true,
+      "schema": "specs"
+    },
+    { "key": "pages.cli", "kind": "page", "title": "CLI", "parent": "pages.spec" },
+    {
+      "key": "pages.plans",
+      "kind": "page",
+      "title": "Plans",
+      "parent": "toggles.sources",
+      "inlineDatabase": "dbs.plans"
+    },
+    {
+      "key": "dbs.plans",
+      "kind": "database",
+      "title": "Plans",
+      "parent": "pages.plans",
+      "inline": true,
+      "schema": "plans"
+    },
+    {
+      "key": "pages.adrs",
+      "kind": "page",
+      "title": "ADRs",
+      "parent": "toggles.sources",
+      "inlineDatabase": "dbs.adrs"
+    },
+    {
+      "key": "dbs.adrs",
+      "kind": "database",
+      "title": "ADRs",
+      "parent": "pages.adrs",
+      "inline": true,
+      "schema": "adrs"
+    }
+  ],
+  "nav": {
+    "topLevel": [
+      "pages.home",
+      "pages.vision",
+      "pages.starting",
+      "pages.workflow",
+      "pages.domain",
+      "pages.planning",
+      "pages.spec",
+      "pages.prds",
+      "pages.plans",
+      "pages.adrs"
+    ],
+    "nested": {
+      "pages.workflow": ["pages.workflow-planning", "pages.development"],
+      "pages.domain": ["pages.glossary", "pages.models", "pages.policies"],
+      "pages.planning": ["pages.prds", "pages.stories"],
+      "pages.spec": ["pages.data-model", "pages.system-model", "pages.cli"]
+    }
+  },
+  "chrome": {
+    "requiredOn": "all-pages",
+    "yellowBgForm": "suffix",
+    "preserveChildren": ["page", "database"]
+  }
+}

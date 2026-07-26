@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@source '../content/**/*.mdx';
+@source '../../packages/ui/src/**/*.tsx';
+
+#nd-sidebar > .overflow-hidden.min-h-0.flex-1,
+#nd-sidebar-mobile > .overflow-hidden.min-h-0.flex-1,
+#nd-sidebar > [data-radix-scroll-area-root],
+#nd-sidebar-mobile > [data-radix-scroll-area-root],
+#nd-sidebar [data-radix-scroll-area-viewport],
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}

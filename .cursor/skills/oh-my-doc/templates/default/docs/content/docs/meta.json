@@ -1,0 +1,13 @@
+{
+  "title": "Handbook",
+  "pages": [
+    "index",
+    "vision",
+    "starting",
+    "workflow",
+    "planning",
+    "plans",
+    "adr",
+    "spec"
+  ]
+}

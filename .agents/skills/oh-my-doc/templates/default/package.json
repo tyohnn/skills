@@ -1,0 +1,21 @@
+{
+  "name": "docs-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "check:planning": "node ../scripts/omd.mjs check"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "turbo": "^2.10.5",
+    "typescript": "^5.9.3"
+  }
+}
