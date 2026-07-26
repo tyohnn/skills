@@ -7,3 +7,7 @@ docs/.source/
 .DS_Store
 .env*
 !.env.example
+
+# Agent host install copies (canonical skill lives under .agents/skills/)
+.cursor/
+.claude/
