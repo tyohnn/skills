@@ -11,7 +11,7 @@ depends:
 ```bash
 # generated — do not hand-edit; run: node scripts/emit-skill-md.mjs --skill concept-to-threejs
 npx skills add tyohnn/skills --skill img2threejs -y
-npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
+npx skills add tyohnn/oh-my-docs --skill oh-my-doc -y
 node scripts/ensure-deps.mjs
 ```
 

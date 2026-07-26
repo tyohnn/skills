@@ -1,5 +1,8 @@
 # Planning workflow
 
+0. Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`). Missing
+   means `local`. Documentation is always first: any decision, agreement, or new
+   discussion that should outlive chat must be written into that SSOT.
 1. Classify the change (`product`, `bugfix`, `maintenance`, or docs-only).
 2. Discover candidate user stories. Moderate unresolved decisions one at a
    time and record only agreed outcomes. `grill-me` is optional.

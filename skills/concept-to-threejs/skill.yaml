@@ -13,7 +13,7 @@ dependencies:
     - name: img2threejs
       source: workspace
     - name: oh-my-doc
-      source: github:ssota-labs/oh-my-docs
+      source: github:tyohnn/oh-my-docs
   packages: []
 
 entrypoints:

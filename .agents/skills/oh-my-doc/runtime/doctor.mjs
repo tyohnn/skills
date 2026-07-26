@@ -7,7 +7,7 @@ export function doctorProject(options) {
     });
     const notes = [];
     if (project.empty)
-        notes.push('Directory is empty — run `node skills/oh-my-doc/scripts/omd.mjs adopt --yes` to scaffold.');
+        notes.push('Directory is empty — run `node skills/oh-my-doc/scripts/omd.mjs adopt --ssot local --yes` (or `--ssot notion --notion-root …`) to scaffold.');
     if (!project.packageManager)
         notes.push('No package manager lockfile or packageManager field detected.');
     else
@@ -25,7 +25,7 @@ export function doctorProject(options) {
     if (project.uiPath)
         notes.push(`UI package: ${project.uiPath}`);
     else
-        notes.push(`Missing UI package (expected ${options.uiPath ?? 'packages/ui'}).`);
+        notes.push(`Missing UI package (expected ${options.uiPath ?? 'packages/docs-ui'}).`);
     notes.push(project.hasAgentsMd ? 'AGENTS.md present' : 'AGENTS.md missing');
     notes.push(project.agentsHasMarker ? 'AGENTS.md has oh-my-docs marker' : 'AGENTS.md marker missing');
     notes.push(project.hasClaudeMd ? 'CLAUDE.md present' : 'CLAUDE.md missing');

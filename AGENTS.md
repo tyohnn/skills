@@ -26,6 +26,9 @@ discussion that should outlive this chat must be written into the selected SSOT
    Notion inline database row or a local catalog folder + `meta.json` — never as
    ad-hoc child pages of the parent section. **Planning ≠ Plans**: implementation
    plans belong in Plans (`dbs.plans`), not under Planning.
+4. Prefer `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes` (local)
+   or the Notion catalog workflow (notion) over ad-hoc files or chat-only notes.
+5. Run `node <skill>/scripts/omd.mjs check` after meaningful documentation edits.
 
 ## Docs-first gate
 
@@ -40,7 +43,4 @@ discussion that should outlive this chat must be written into the selected SSOT
 Dependency direction:
 
 `product vision → PRD → story → specification/ADR → implementation plan → code`
-
-Create drafts with `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes`.
-Run `node <skill>/scripts/omd.mjs check` before opening an implementation PR.
 <!-- oh-my-docs:end -->

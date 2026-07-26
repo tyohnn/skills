@@ -51,6 +51,11 @@ test('adopt greenfield writes .omd and docs skeleton', () => {
     assert.ok(existsSync(join(root, '.omd/project.json')));
     assert.ok(existsSync(join(root, '.omd/state.json')));
     assert.ok(existsSync(join(root, 'docs/content/docs/meta.json')));
+    assert.ok(existsSync(join(root, 'packages/docs-ui/package.json')));
+    assert.equal(existsSync(join(root, 'packages/ui')), false);
+    assert.equal(existsSync(join(root, '.cursor/skills/oh-my-doc/SKILL.md')), false);
+    assert.equal(existsSync(join(root, '.claude/skills/oh-my-doc/SKILL.md')), false);
+    assert.equal(existsSync(join(root, '.agents/skills/oh-my-doc/SKILL.md')), false);
     const meta = JSON.parse(readFileSync(join(root, 'docs/content/docs/meta.json'), 'utf8'));
     assert.deepEqual(meta.pages, [
       'index',
@@ -64,7 +69,12 @@ test('adopt greenfield writes .omd and docs skeleton', () => {
     ]);
     assert.equal(result.contract.ui.base, 'fumadocs');
     assert.equal(result.contract.ui.distribution, 'skill-template');
+    assert.equal(result.contract.paths.ui, 'packages/docs-ui');
     assert.ok(result.contract.ui.shellDependencies.includes('fumadocs-ui'));
+    const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+    assert.match(agents, /contentSource\.ssot/);
+    assert.match(agents, /Documentation is always first/);
+    assert.match(agents, /not left only in conversation/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -125,4 +135,21 @@ test('planning validator accepts ADR locked stage', () => {
   const problems = validatePlanning(root);
   assert.deepEqual(problems, []);
   rmSync(root, { recursive: true, force: true });
+});
+
+test('greenfield adopt without --ssot returns needsSsot', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'omd-needs-ssot-'));
+  const prev = process.cwd();
+  const originalExit = process.exitCode;
+  try {
+    process.chdir(root);
+    process.exitCode = 0;
+    const { main } = await import('../scripts/omd.mjs');
+    await main(['adopt', '--dry-run', '--json']);
+    assert.equal(process.exitCode, 1);
+  } finally {
+    process.exitCode = originalExit;
+    process.chdir(prev);
+    rmSync(root, { recursive: true, force: true });
+  }
 });

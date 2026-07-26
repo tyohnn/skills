@@ -1,6 +1,6 @@
 # Docs workspace
 
-Scaffolded with [Oh My Docs](https://github.com/ssota-labs/oh-my-docs).
+Scaffolded with [Oh My Docs](https://github.com/tyohnn/oh-my-docs).
 
 `apps/docs` in the Oh My Docs repository is the product handbook for Oh My Docs
 itself. This template (`templates/default`) is the user-facing scaffold copied by

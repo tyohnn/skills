@@ -11,8 +11,12 @@ bundled runtime.
 ## Install (first time)
 
 ```bash
-npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
+npx skills add tyohnn/oh-my-docs --skill oh-my-doc -y
 ```
+
+`skills add` defaults to **symlinks** (one canonical copy). Prefer
+`-a <host>` when only one agent is needed. Avoid `--copy` unless symlinks are
+unsupported. Do not re-copy the skill into every agent directory during adopt.
 
 ## Runtime actions
 
@@ -20,7 +24,7 @@ Always prefer JSON for machine steps:
 
 ```bash
 node <skill>/scripts/omd.mjs inspect --json
-node <skill>/scripts/omd.mjs adopt --yes --json
+node <skill>/scripts/omd.mjs adopt --ssot local --yes --json
 node <skill>/scripts/omd.mjs adopt --ssot notion --notion-root <url-or-id> --dry-run --json
 node <skill>/scripts/omd.mjs new prd --title "…" --yes --json
 node <skill>/scripts/omd.mjs check --json
@@ -28,24 +32,34 @@ node <skill>/scripts/omd.mjs sync --yes --json
 ```
 
 Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before choosing a
-workflow. Missing `contentSource` means `local`.
+workflow. Missing `contentSource` means `local`. Documentation is always first:
+any decision, agreement, or new discussion that should outlive chat must be
+written into that SSOT.
 
 ### State machine
 
 1. `inspect` — classify greenfield vs brownfield; never mutate.
-2. `adopt --dry-run` — show the plan; ask the user only when mapping is ambiguous.
-3. `adopt --yes` — apply scaffold/import, write `.omd/`, install UI vocabulary snapshot.
-4. `adopt --ssot notion --notion-root …` — emit a Notion MCP provisioning manifest from
-   `references/notion-*` (never a `ref/` path); execute via host MCP; record mappings.
-5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local), or
-   Notion root/mappings/pending ops (notion).
+2. **Ask SSOT** — before the first adopt, ask the user to choose `local`
+   (Fumadocs docs app) or `notion`. Greenfield `adopt` without `--ssot` fails
+   with `needsSsot`.
+3. `adopt --ssot local --dry-run` / `--yes` — scaffold docs + `packages/docs-ui`,
+   write `.omd/`.
+4. `adopt --ssot notion --notion-root …` — map root to `pages.home`, emit a
+   Notion MCP provisioning manifest from `references/notion-*` (never a `ref/`
+   path); execute via host MCP; record mappings. Does **not** install local UI.
+5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
+   or Notion root/mappings/pending ops (notion).
 6. `new` / `sync` as needed for later work.
 
 ## UI distribution
 
-- Docs shell base is **Fumadocs**. Install `fumadocs-ui` / `fumadocs-core` / `fumadocs-mdx` via npm as normal peer dependencies.
-- Planning vocabulary (`DocKind`, `Decision`, …) lives in the skill template and is **copied into the project by `adopt`**. There is no shadcn registry.
-- Keep dogfood `packages/ui` and `skills/oh-my-doc/templates/default/packages/ui` in sync.
+- Docs shell base is **Fumadocs**. Install `fumadocs-ui` / `fumadocs-core` /
+  `fumadocs-mdx` via npm as normal peer dependencies (local SSOT only).
+- Planning vocabulary (`DocKind`, `Decision`, …) lives in the skill template and
+  is **copied into `packages/docs-ui` by local `adopt`**. There is no shadcn
+  registry.
+- Keep dogfood `packages/docs-ui` and
+  `skills/oh-my-doc/templates/default/packages/docs-ui` in sync.
 
 ## Progressive disclosure
 
@@ -57,7 +71,7 @@ workflow. Missing `contentSource` means `local`.
 | `references/implementation-workflow.md` | How to implement under a ready plan |
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
-| `references/notion-information-architecture.md` | Notion page + inline DB IA |
+| `references/notion-information-architecture.md` | Notion page + details-toggle IA |
 | `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |
 | `references/notion-page-templates.md` | Notion-flavored body templates |
 | `references/notion-manual-checklist.md` | Host-only steps (page Full width) |
@@ -68,13 +82,15 @@ workflow. Missing `contentSource` means `local`.
 ## Hard rules
 
 - Never invent product requirements from code alone.
-- Read `.omd/project.json` `contentSource.ssot` and treat **one** handbook SSOT
-  as authoritative (`local` docs tree or Notion — never both).
-- Decisions, agreements, and open questions that should outlive the chat must be
-  written into that SSOT; catalog rows go in the catalog store (Notion DB /
-  local `meta.json` folders), not ad-hoc section children. Plans go in Plans
-  (`dbs.plans`), not under Planning.
 - Never skip the docs-first gate for product, bugfix, or maintenance work.
+- Always read `.omd/project.json` `contentSource.ssot` and treat that provider as
+  the only handbook SSOT; ask + `adopt` when `.omd` is missing.
+- Documentation is always first: write decisions, agreements, and new discussions
+  into the SSOT instead of leaving truth only in chat.
+- Catalog entries (PRD, story, plan, ADR, …) go in the catalog store (Notion
+  inline DB or local catalog folder + `meta.json`), never as ad-hoc section
+  children. **Planning ≠ Plans**: implementation plans belong in Plans
+  (`dbs.plans`), not under Planning.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
-- Prefer `inspect → adopt → check` over inventing handbook files.
+- Prefer `inspect → ask SSOT → adopt → check` over inventing handbook files.

@@ -139,9 +139,30 @@ export async function main(argv = process.argv.slice(2)) {
           return;
         }
         const target = resolve(process.cwd(), positionals[0] ?? '.');
+        const existingContract = readProject(target);
+        const ssotFlag = flagSsot(flags);
+        if (!existingContract && !ssotFlag) {
+          const payload = {
+            ok: false,
+            code: 'needsSsot',
+            needsSsot: true,
+            options: ['local', 'notion'],
+            message:
+              'Greenfield adopt requires --ssot local|notion. Ask the user to choose the handbook SSOT first.',
+          };
+          if (json) printJson(payload);
+          else {
+            console.error(payload.message);
+            console.error('Examples:');
+            console.error('  adopt --ssot local --yes');
+            console.error('  adopt --ssot notion --notion-root <url-or-id> --yes');
+          }
+          process.exitCode = 1;
+          return;
+        }
         const source = resolveContentSource({
           cwd: target,
-          ssot: flagSsot(flags),
+          ssot: ssotFlag,
           notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
         });
 
@@ -284,9 +305,33 @@ export async function main(argv = process.argv.slice(2)) {
             if (state && digest(stableStringify(contract)) !== state.projectDigest) {
               problems.push('.omd/state.json projectDigest does not match project.json');
             }
+            const home = state?.provider?.notion?.mappings?.['pages.home'];
+            if (!home?.id || home.id !== normalized.notion?.rootPageId) {
+              problems.push('pages.home mapping must equal contentSource.notion.rootPageId');
+            }
             const pending = state?.provider?.notion?.pendingOperationIds ?? [];
             if (pending.length > 0) {
               problems.push(`Notion provision has ${pending.length} pending operation(s)`);
+            }
+
+            const notionRoot =
+              normalized.notion?.rootPageUrl ||
+              normalized.notion?.rootPageId ||
+              source.notion?.rootPageUrl ||
+              source.notion?.rootPageId;
+            if (notionRoot) {
+              const planned = getContentAdapter('notion').planProvision({
+                skillRoot: SKILL_ROOT,
+                notionRoot,
+                mappings: state?.provider?.notion?.mappings ?? {},
+                pendingOperationIds: pending,
+              });
+              for (const problem of planned.blockers ?? []) {
+                problems.push(`${problem.code}: ${problem.message}`);
+              }
+              for (const problem of planned.manifest?.chromeValidation?.problems ?? []) {
+                problems.push(`${problem.code}: ${problem.message}`);
+              }
             }
           }
           const ok = problems.length === 0;
@@ -295,7 +340,7 @@ export async function main(argv = process.argv.slice(2)) {
             console.error(`check found ${problems.length} problem(s):`);
             for (const problem of problems) console.error(`- ${problem}`);
           } else {
-            console.log('Notion content source contract looks valid.');
+            console.log('Notion content source contract and sidebar chrome look valid.');
           }
           if (!ok) process.exitCode = 1;
           return;
@@ -423,16 +468,20 @@ Usage:
   node scripts/omd.mjs <action> [options]
 
 Actions:
-  inspect   Report project mode, docs/UI/.omd state
-  adopt     Greenfield scaffold or brownfield import
+  inspect   Report project mode, docs/UI/.omd state, SSOT
+  adopt     Greenfield scaffold or brownfield import (requires --ssot on first adopt)
   new       Create prd|story|spec|plan|adr
-  check     Validate planning graph + .omd contract
+  check     Validate planning graph + .omd contract (and Notion chrome)
   sync      Refresh managed IA/markers from .omd
 
 Common flags:
   --json --dry-run --yes --force
   --ssot local|notion --notion-root <url-or-id>
   --ui-path <path> --docs-path <path> --title <title> --id <id>
+
+Defaults:
+  --ssot          required for greenfield adopt (no silent local default)
+  --ui-path       packages/docs-ui (local SSOT only)
 `);
 }
 

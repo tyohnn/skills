@@ -47,7 +47,7 @@ export function adoptProject(options) {
           {
             cwd: project.root,
             force: options.force,
-            uiPath: options.uiPath ?? 'packages/ui',
+            uiPath: options.uiPath ?? 'packages/docs-ui',
             ...(options.packageManager ? { packageManager: options.packageManager } : {}),
           },
           options.templateRoot,
@@ -55,7 +55,7 @@ export function adoptProject(options) {
       : { project, operations: [], conflicts: [] };
 
   // Ensure UI vocabulary snapshot exists from the skill template.
-  const uiOps = planUiSnapshot(project.root, options.templateRoot, options.uiPath ?? 'packages/ui', options.force === true);
+  const uiOps = planUiSnapshot(project.root, options.templateRoot, options.uiPath ?? 'packages/docs-ui', options.force === true);
 
   const setupPlan = planSetup({
     cwd: project.root,
@@ -71,7 +71,7 @@ export function adoptProject(options) {
   const contract = createDefaultProject(project.root, {
     mode,
     docsPath: project.docsPath ?? 'docs',
-    uiPath: options.uiPath ?? project.uiPath ?? 'packages/ui',
+    uiPath: options.uiPath ?? project.uiPath ?? 'packages/docs-ui',
   });
 
   if (mode === 'brownfield' && inspection.documents.length > 0) {
@@ -150,7 +150,7 @@ export function adoptProject(options) {
  * @param {boolean} force
  */
 function planUiSnapshot(root, templateRoot, uiPath, force) {
-  const sourceUi = join(templateRoot, 'packages/ui');
+  const sourceUi = join(templateRoot, 'packages/docs-ui');
   if (!existsSync(sourceUi)) return [];
   const operations = [];
   for (const absolute of listFilesRecursive(sourceUi)) {
@@ -187,7 +187,7 @@ export function syncProject(options) {
   const contract = createDefaultProject(project.root, {
     mode: existsSync(join(project.root, '.omd/project.json')) ? 'brownfield' : 'greenfield',
     docsPath: project.docsPath ?? 'docs',
-    uiPath: project.uiPath ?? 'packages/ui',
+    uiPath: project.uiPath ?? 'packages/docs-ui',
   });
 
   // Prefer existing contract when present.
