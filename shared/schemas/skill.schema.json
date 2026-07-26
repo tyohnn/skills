@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyohnn/skills/shared/schemas/skill.schema.json",
+  "title": "tyohnn/skills skill.yaml",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "version", "description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Must match SKILL.md frontmatter name and skills.sh skill id."
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["utility", "domain", "workflow", "framework", "scaffolding"]
+    },
+    "domains": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Synced into SKILL.md frontmatter description on emit."
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/skillDependency" }
+        },
+        "packages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/packageDependency" }
+        }
+      }
+    },
+    "entrypoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "instructions": { "type": "string", "default": "SKILL.md" },
+        "ensureDeps": { "type": "string", "default": "scripts/ensure-deps.mjs" },
+        "verify": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "skillDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "source"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "source": {
+          "type": "string",
+          "description": "workspace | github:owner/repo",
+          "pattern": "^(workspace|github:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$"
+        },
+        "ref": {
+          "type": "string",
+          "description": "Optional git ref / tag for later pinning."
+        }
+      }
+    },
+    "packageDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "source"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "source": {
+          "type": "string",
+          "description": "npm package name, or github:owner/repo, or a package specifier.",
+          "minLength": 1
+        },
+        "manager": {
+          "type": "string",
+          "enum": ["pnpm", "npm", "yarn"]
+        }
+      }
+    }
+  }
+}

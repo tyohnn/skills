@@ -1,0 +1,17 @@
+name: img2threejs
+version: 0.1.0
+kind: domain
+domains:
+  - threejs
+  - education
+description: >
+  Turn reference images into interactive Three.js scenes with controls
+  suitable for teaching and demos.
+
+dependencies:
+  skills: []
+  packages: []
+
+entrypoints:
+  instructions: SKILL.md
+  ensureDeps: scripts/ensure-deps.mjs

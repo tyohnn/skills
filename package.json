@@ -1,5 +1,5 @@
 {
-  "name": "lfrt",
+  "name": "skills",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.5.2",
@@ -10,12 +10,21 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
+    "test:skills": "node --test shared/runtime/*.test.mjs",
     "typecheck": "turbo run typecheck",
+    "skills:verify": "node scripts/verify-all.mjs",
+    "skills:install-deps": "node scripts/install-deps.mjs",
+    "skills:emit": "node scripts/emit-skill-md.mjs",
+    "skills:sync-runtime": "node scripts/sync-skill-runtime.mjs",
     "check:planning": "node .agents/skills/oh-my-doc/scripts/omd.mjs check"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "ajv": "^8.20.0",
     "turbo": "^2.10.5",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "yaml": "^2.9.0"
   }
 }
