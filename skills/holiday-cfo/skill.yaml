@@ -1,0 +1,19 @@
+name: holiday-cfo
+version: 0.1.0
+kind: workflow
+domains:
+  - finance
+  - accounting
+description: >
+  Personal and company financial accounting workflow. Composes analysis
+  skills and keeps books, cash, and reporting decisions in one place.
+
+dependencies:
+  skills:
+    - name: holiday
+      source: workspace
+  packages: []
+
+entrypoints:
+  instructions: SKILL.md
+  ensureDeps: scripts/ensure-deps.mjs
