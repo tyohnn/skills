@@ -1,0 +1,21 @@
+name: concept-to-threejs
+version: 0.1.0
+kind: workflow
+domains:
+  - education
+  - threejs
+description: >
+  Turn a science or engineering concept into a one-page 3D learning scene
+  by routing through img2threejs and docs-first planning via oh-my-doc.
+
+dependencies:
+  skills:
+    - name: img2threejs
+      source: workspace
+    - name: oh-my-doc
+      source: github:ssota-labs/oh-my-docs
+  packages: []
+
+entrypoints:
+  instructions: SKILL.md
+  ensureDeps: scripts/ensure-deps.mjs

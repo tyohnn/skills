@@ -1,0 +1,20 @@
+name: holiday
+version: 0.1.0
+kind: domain
+domains:
+  - finance
+  - investing
+description: >
+  Equity and industry analysis skill. Uses chartcn for charting surfaces;
+  chartcn stays an external package, not a vendored copy.
+
+dependencies:
+  skills: []
+  packages:
+    - name: chartcn
+      source: github:tyohnn/chartcn
+      manager: pnpm
+
+entrypoints:
+  instructions: SKILL.md
+  ensureDeps: scripts/ensure-deps.mjs
