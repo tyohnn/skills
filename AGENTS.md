@@ -44,3 +44,28 @@ Dependency direction:
 
 `product vision → PRD → story → specification/ADR → implementation plan → code`
 <!-- oh-my-docs:end -->
+
+## Cursor Cloud specific instructions
+
+This is a pnpm + Node monorepo of agent skills. The "app" is the CLI tooling in
+`scripts/` + `shared/runtime/`; there is no web server. See `README.md` for the
+canonical command list.
+
+- **Node version**: `package.json` requires Node `>=24`. The VM's nvm default is
+  Node 24 and interactive shells prefer it via a one-time `~/.bashrc` edit,
+  because the daemon's bundled `/exec-daemon/node` (v22) would otherwise win in
+  `PATH`. `node -v` should report v24.x; if it reports v22, the shell did not
+  pick up nvm's default.
+- **Do NOT run the turbo tasks** `pnpm build`, `pnpm dev`, `pnpm typecheck`, or
+  `pnpm test`. The workspace is `packages: ["."]`, so the root package (named
+  `skills`) is itself a turbo package whose `build`/`dev`/`typecheck`/`test`
+  scripts each call `turbo run <task>` → **infinite self-recursion** that hangs.
+  There is currently no real per-package TypeScript/build output (skills are
+  `.mjs`/`.md`/`.yaml`), so these tasks have nothing to do anyway.
+- **Dev workflow = the node scripts** (see `README.md`):
+  `pnpm skills:verify` (`node scripts/verify-all.mjs`), `pnpm test:skills`
+  (`node --test shared/runtime/*.test.mjs`), `node scripts/create-skill.mjs`,
+  `node scripts/emit-skill-md.mjs --all`, `node scripts/install-deps.mjs`,
+  `node scripts/sync-skill-runtime.mjs`.
+- **Content SSOT is Notion** (`.omd/project.json`), not a local docs app; there
+  is no `docs/` app or `@oh-my-docs/ui` package in this repo.
