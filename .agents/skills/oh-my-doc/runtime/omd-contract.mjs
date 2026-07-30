@@ -2,33 +2,25 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
+import { catalogsFromGraph, loadHandbookIaGraph, sectionsFromGraph } from './ia-graph.mjs';
+
 export const CONTRACT_VERSION = '1.0';
 export const SKILL_VERSION = '0.2.0';
 
-/** Default IA: Home → Vision → Start here → Workflow → Planning → Plans → ADR → Spec */
-export const DEFAULT_IA_SECTIONS = [
-  { id: 'home', title: 'Home', path: 'index', required: true, visible: true },
-  { id: 'vision', title: 'Vision', path: 'vision', required: true, visible: true },
-  { id: 'starting', title: 'Start here', path: 'starting', required: true, visible: true },
-  { id: 'workflow', title: 'Workflow', path: 'workflow', required: true, visible: true },
-  { id: 'planning', title: 'Planning', path: 'planning', required: true, visible: true },
-  { id: 'plans', title: 'Plans', path: 'plans', required: true, visible: true },
-  { id: 'adr', title: 'ADR', path: 'adr', required: true, visible: true },
-  { id: 'spec', title: 'Spec', path: 'spec', required: true, visible: true },
-];
+const handbookGraph = loadHandbookIaGraph();
 
+/** Default IA derived from references/handbook-ia-graph.json */
+export const DEFAULT_IA_SECTIONS = sectionsFromGraph(handbookGraph);
 
-export const DEFAULT_CATALOGS = [
-  { id: 'glossary', label: 'Glossary', prefix: ['domain', 'glossary'], indexUrl: '/docs/domain/glossary', indexOnly: true },
-  { id: 'models', label: 'Domain models', prefix: ['domain', 'models'], indexUrl: '/docs/domain/models', indexOnly: true },
-  { id: 'policies', label: 'Domain policies', prefix: ['domain', 'policies'], indexUrl: '/docs/domain/policies', indexOnly: true },
-  { id: 'prds', label: 'Product requirements', prefix: ['planning', 'prds'], indexUrl: '/docs/planning/prds', indexOnly: true },
-  { id: 'stories', label: 'User stories', prefix: ['planning', 'stories'], indexUrl: '/docs/planning/stories', indexOnly: true },
-  { id: 'plans', label: 'Implementation plans', prefix: ['plans'], indexUrl: '/docs/plans', indexOnly: true },
-  { id: 'adr', label: 'ADR', prefix: ['adr'], indexUrl: '/docs/adr', indexOnly: true },
-  { id: 'spec-data-model', label: 'Data model', prefix: ['spec', 'data-model'], indexUrl: '/docs/spec/data-model', indexOnly: true },
-  { id: 'spec-system-model', label: 'System model', prefix: ['spec', 'system-model'], indexUrl: '/docs/spec/system-model', indexOnly: true },
-];
+export const DEFAULT_CATALOGS = catalogsFromGraph(handbookGraph).map(
+  ({ id, label, prefix, indexUrl, indexOnly }) => ({
+    id,
+    label,
+    prefix,
+    indexUrl,
+    indexOnly,
+  }),
+);
 
 export const DEFAULT_UI_VOCABULARY = [
   { name: 'Card', surface: 'fumadocs-mdx', export: 'Card', source: 'fumadocs-ui', contractVersion: CONTRACT_VERSION },
@@ -77,15 +69,19 @@ export function stableStringify(value) {
  */
 /**
  * @param {unknown} project
- * @returns {{ ssot: 'local' | 'notion', notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string } }}
+ * @returns {{
+ *   ssot: 'local' | 'notion' | 'supabase',
+ *   notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string },
+ *   supabase: null | { projectRef: string, schemaVersion: string },
+ * }}
  */
 export function normalizeContentSource(project) {
   const raw = project && typeof project === 'object' ? project.contentSource : null;
   if (!raw || typeof raw !== 'object' || !raw.ssot) {
-    return { ssot: 'local', notion: null };
+    return { ssot: 'local', notion: null, supabase: null };
   }
   if (raw.ssot === 'local') {
-    return { ssot: 'local', notion: null };
+    return { ssot: 'local', notion: null, supabase: null };
   }
   if (raw.ssot === 'notion') {
     const notion = raw.notion && typeof raw.notion === 'object' ? raw.notion : {};
@@ -96,16 +92,29 @@ export function normalizeContentSource(project) {
         rootPageUrl: String(notion.rootPageUrl ?? ''),
         schemaVersion: String(notion.schemaVersion ?? '1.0'),
       },
+      supabase: null,
+    };
+  }
+  if (raw.ssot === 'supabase') {
+    const supabase = raw.supabase && typeof raw.supabase === 'object' ? raw.supabase : {};
+    return {
+      ssot: 'supabase',
+      notion: null,
+      supabase: {
+        projectRef: String(supabase.projectRef ?? ''),
+        schemaVersion: String(supabase.schemaVersion ?? '1.0'),
+      },
     };
   }
   throw new Error(`unsupported contentSource.ssot: ${raw.ssot}`);
 }
 
 /**
- * @param {'local' | 'notion'} [ssot]
+ * @param {'local' | 'notion' | 'supabase'} [ssot]
  * @param {{ rootPageId: string, rootPageUrl: string, schemaVersion?: string } | null} [notion]
+ * @param {{ projectRef: string, schemaVersion?: string } | null} [supabase]
  */
-export function createContentSource(ssot = 'local', notion = null) {
+export function createContentSource(ssot = 'local', notion = null, supabase = null) {
   if (ssot === 'local') {
     return { ssot: 'local' };
   }
@@ -122,6 +131,18 @@ export function createContentSource(ssot = 'local', notion = null) {
       },
     };
   }
+  if (ssot === 'supabase') {
+    if (!supabase?.projectRef) {
+      throw new Error('supabase contentSource requires projectRef');
+    }
+    return {
+      ssot: 'supabase',
+      supabase: {
+        projectRef: supabase.projectRef,
+        schemaVersion: supabase.schemaVersion ?? '1.0',
+      },
+    };
+  }
   throw new Error(`unsupported contentSource.ssot: ${ssot}`);
 }
 
@@ -131,7 +152,11 @@ export function createContentSource(ssot = 'local', notion = null) {
  *   mode?: 'greenfield' | 'brownfield',
  *   docsPath?: string,
  *   uiPath?: string,
- *   contentSource?: { ssot: 'local' | 'notion', notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string } },
+ *   contentSource?: {
+ *     ssot: 'local' | 'notion' | 'supabase',
+ *     notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string },
+ *     supabase?: { projectRef: string, schemaVersion?: string },
+ *   },
  * }} [options]
  */
 export function createDefaultProject(root, options = {}) {
@@ -139,6 +164,7 @@ export function createDefaultProject(root, options = {}) {
     ? createContentSource(
         options.contentSource.ssot,
         options.contentSource.ssot === 'notion' ? options.contentSource.notion ?? null : null,
+        options.contentSource.ssot === 'supabase' ? options.contentSource.supabase ?? null : null,
       )
     : createContentSource('local');
 
@@ -153,8 +179,19 @@ export function createDefaultProject(root, options = {}) {
       templates: `${options.docsPath ?? 'docs'}/templates`,
     },
     informationArchitecture: {
+      schemaVersion: handbookGraph.schemaVersion,
       sections: DEFAULT_IA_SECTIONS,
       catalogs: DEFAULT_CATALOGS,
+      kindToDatabase: handbookGraph.kindToDatabase ?? {},
+      nav: handbookGraph.nav,
+      graphDigest: digest(
+        stableStringify({
+          schemaVersion: handbookGraph.schemaVersion,
+          objects: handbookGraph.objects,
+          nav: handbookGraph.nav,
+          kindToDatabase: handbookGraph.kindToDatabase,
+        }),
+      ),
     },
     lifecycles: DEFAULT_LIFECYCLES,
     ui: {

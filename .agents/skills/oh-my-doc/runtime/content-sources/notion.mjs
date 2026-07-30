@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { digest, stableStringify } from '../omd-contract.mjs';
+import { loadHandbookIaGraph, databaseKeyForKind } from '../ia-graph.mjs';
 import { loadNotionReferences } from './load-references.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
 import {
@@ -309,7 +310,7 @@ export function planProvision(options) {
     sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'details-toggle-on-home',
     chrome: refs.iaGraph.chrome ?? { requiredOn: 'all-pages' },
     references: {
-      iaGraph: 'references/notion-ia-graph.json',
+      iaGraph: 'references/handbook-ia-graph.json',
       catalogSchemas: 'references/notion-catalog-schemas.json',
       sidebar: 'references/notion-sidebar.md',
       pageTemplates: 'references/notion-page-templates.md',
@@ -543,14 +544,10 @@ export function capabilityBlockers(flags = {}) {
  * }} options
  */
 export function planCreateDocument(options) {
-  const kindToDb = {
-    prd: 'dbs.prds',
-    story: 'dbs.stories',
-    plan: 'dbs.plans',
-    adr: 'dbs.adrs',
-    spec: 'dbs.data-model',
-  };
-  const dbKey = kindToDb[options.kind];
+  const graph = options.skillRoot
+    ? loadHandbookIaGraph(options.skillRoot)
+    : loadHandbookIaGraph();
+  const dbKey = databaseKeyForKind(graph, options.kind);
   if (!dbKey) {
     throw new Error(`unsupported Notion document kind: ${options.kind}`);
   }

@@ -2,7 +2,8 @@
 
 Path: `skills/oh-my-doc/references/` (name **`references`**, not `ref`).
 
-Machine-readable companion: `notion-ia-graph.json` (`schemaVersion` 1.3).
+Machine-readable companion: `handbook-ia-graph.json` (`schemaVersion` 2.0;
+`notion-ia-graph.json` mirrors it for compatibility).
 
 Catalog destinations are **pages** that embed their database **inline**. The
 navigable object is the page; the database is not a top-level sidebar target.

@@ -61,6 +61,7 @@ test('adopt greenfield writes .omd and docs skeleton', () => {
       'index',
       'vision',
       'starting',
+      'domain',
       'workflow',
       'planning',
       'plans',
@@ -71,10 +72,13 @@ test('adopt greenfield writes .omd and docs skeleton', () => {
     assert.equal(result.contract.ui.distribution, 'skill-template');
     assert.equal(result.contract.paths.ui, 'packages/docs-ui');
     assert.ok(result.contract.ui.shellDependencies.includes('fumadocs-ui'));
+    assert.ok(result.contract.informationArchitecture.graphDigest);
+    assert.equal(result.contract.informationArchitecture.kindToDatabase.plan, 'dbs.plans');
     const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
     assert.match(agents, /contentSource\.ssot/);
     assert.match(agents, /Documentation is always first/);
     assert.match(agents, /not left only in conversation/);
+    assert.match(agents, /Planning ≠ Plans|dbs\.plans/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

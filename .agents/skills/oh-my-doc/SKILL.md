@@ -31,10 +31,10 @@ node <skill>/scripts/omd.mjs check --json
 node <skill>/scripts/omd.mjs sync --yes --json
 ```
 
-Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before choosing a
-workflow. Missing `contentSource` means `local`. Documentation is always first:
-any decision, agreement, or new discussion that should outlive chat must be
-written into that SSOT.
+Read `.omd/project.json` `contentSource.ssot` (`local` | `notion` | `supabase`)
+before choosing a workflow. Missing `contentSource` means `local`. Documentation
+is always first: any decision, agreement, or new discussion that should outlive
+chat must be written into that SSOT.
 
 ### State machine
 
@@ -72,10 +72,11 @@ written into that SSOT.
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
 | `references/notion-information-architecture.md` | Notion page + details-toggle IA |
+| `references/notion-catalog-writes.md` | Where PRD/story/plan/ADR rows go (Planning ≠ Plans) |
 | `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |
 | `references/notion-page-templates.md` | Notion-flavored body templates |
 | `references/notion-manual-checklist.md` | Host-only steps (page Full width) |
-| `references/notion-ia-graph.json` | Machine-readable Notion object graph |
+| `references/handbook-ia-graph.json` | Shared structure metadata IA graph (local + Notion) |
 | `references/notion-catalog-schemas.json` | Catalog DB properties and relations |
 | `assets/AGENTS.md` / `assets/CLAUDE.md` | Marker body templates |
 
@@ -84,7 +85,8 @@ written into that SSOT.
 - Never invent product requirements from code alone.
 - Never skip the docs-first gate for product, bugfix, or maintenance work.
 - Always read `.omd/project.json` `contentSource.ssot` and treat that provider as
-  the only handbook SSOT; ask + `adopt` when `.omd` is missing.
+  the only handbook **content** SSOT; structure metadata comes from the shared
+  IA graph stamped into `.omd/project.json`. Ask + `adopt` when `.omd` is missing.
 - Documentation is always first: write decisions, agreements, and new discussions
   into the SSOT instead of leaving truth only in chat.
 - Catalog entries (PRD, story, plan, ADR, …) go in the catalog store (Notion

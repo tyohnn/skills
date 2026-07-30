@@ -19,6 +19,7 @@ import {
   stableStringify,
   writeOmdContract,
 } from './omd-contract.mjs';
+import { loadHandbookIaGraph, planMetaSkeletonOperations } from './ia-graph.mjs';
 import { planInit } from './plan-init.mjs';
 import { planSetup } from './plan-setup.mjs';
 import { readTextIfExists } from './fs-ops.mjs';
@@ -78,19 +79,13 @@ export function adoptProject(options) {
     contract.ownership.importedOwned = inspection.documents.map((doc) => doc.path);
   }
 
-  // Sync IA meta.json for greenfield only.
-  if (mode === 'greenfield') {
-    const metaPath = `${contract.paths.content}/meta.json`;
-    const metaContent = stableStringify({
-      title: 'Handbook',
-      pages: contract.informationArchitecture.sections.map((section) => section.path),
+  // Sync structure meta.json skeletons from the handbook IA graph.
+  if (mode === 'greenfield' || options.force) {
+    const graph = loadHandbookIaGraph(options.skillRoot);
+    const metaOps = planMetaSkeletonOperations(contract.paths.content, graph, {
+      readExisting: (rel) => readTextIfExists(join(project.root, rel)),
     });
-    operations.push({
-      path: metaPath,
-      kind: existsSync(join(project.root, metaPath)) ? 'update' : 'create',
-      reason: 'write default IA from .omd contract',
-      content: metaContent,
-    });
+    operations.push(...metaOps);
   }
 
   const fileDigests = {};
@@ -180,7 +175,7 @@ function planUiSnapshot(root, templateRoot, uiPath, force) {
 
 /**
  * Sync managed IA meta.json from .omd/project.json without rewriting owned docs.
- * @param {{ cwd: string, force?: boolean, dryRun?: boolean, schemasDir: string }} options
+ * @param {{ cwd: string, force?: boolean, dryRun?: boolean, schemasDir: string, skillRoot?: string }} options
  */
 export function syncProject(options) {
   const project = detectProject(options.cwd);
@@ -196,25 +191,23 @@ export function syncProject(options) {
     ? JSON.parse(readFileSync(existingPath, 'utf8'))
     : contract;
 
-  const metaPath = `${contractData.paths.content}/meta.json`;
-  const pages = contractData.informationArchitecture.sections
-    .filter((section) => section.visible !== false)
-    .map((section) => section.path);
-  const metaContent = stableStringify({
-    title: existsSync(join(project.root, metaPath))
-      ? JSON.parse(readFileSync(join(project.root, metaPath), 'utf8')).title ?? 'Handbook'
-      : 'Handbook',
-    pages,
+  const graph = loadHandbookIaGraph(options.skillRoot);
+  // Refresh structure metadata stamp when missing.
+  if (!contractData.informationArchitecture?.graphDigest) {
+    const fresh = createDefaultProject(project.root, {
+      mode: contractData.mode,
+      docsPath: contractData.paths?.docs,
+      uiPath: contractData.paths?.ui,
+      contentSource: contractData.contentSource,
+    });
+    contractData.informationArchitecture = fresh.informationArchitecture;
+  }
+
+  const metaOps = planMetaSkeletonOperations(contractData.paths.content, graph, {
+    readExisting: (rel) => readTextIfExists(join(project.root, rel)),
   });
 
-  const operations = [
-    {
-      path: metaPath,
-      kind: existsSync(join(project.root, metaPath)) ? 'update' : 'create',
-      reason: 'sync IA pages from .omd/project.json',
-      content: metaContent,
-    },
-  ];
+  const operations = [...metaOps];
 
   // Refresh markers (managed).
   for (const [file, body] of [

@@ -10,6 +10,7 @@ import { normalizeContentSource } from '../runtime/omd-contract.mjs';
 import { parseNotionRoot } from '../runtime/content-sources/notion-root.mjs';
 import {
   planProvision,
+  planCreateDocument,
   recordResult,
   validateSnapshot,
   validateMapping,
@@ -26,7 +27,15 @@ const dogfoodRoot = '3a7346da-c456-800a-85f4-cae724925f98';
 
 test('references Notion templates load details-toggle-on-home IA', () => {
   const refs = loadNotionReferences(skillRoot);
-  assert.equal(refs.iaGraph.schemaVersion, '1.3');
+  assert.equal(refs.iaGraph.schemaVersion, '2.0');
+  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.domain'));
+  assert.ok(refs.iaGraph.kindToDatabase.plan === 'dbs.plans');
+  assert.deepEqual(refs.iaGraph.nav.nested['pages.planning'], ['pages.prds', 'pages.stories']);
+  assert.ok(
+    (refs.iaGraph.objects.find((o) => o.key === 'pages.plans')?.forbiddenParents ?? []).includes(
+      'pages.planning',
+    ),
+  );
   assert.equal(refs.iaGraph.sourcesStrategy, 'details-toggle-on-home');
   assert.equal(refs.iaGraph.sourcesToggle.kind, 'details');
   assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'toggles.sources'));
@@ -262,6 +271,8 @@ test('adoptNotion --yes writes contract with pages.home mapping and no UI scaffo
     assert.equal(project.contentSource.ssot, 'notion');
     assert.equal(project.contentSource.notion.rootPageId, dogfoodRoot);
     assert.equal(project.ui.distribution, 'none');
+    assert.ok(project.informationArchitecture.graphDigest);
+    assert.equal(project.informationArchitecture.kindToDatabase.plan, 'dbs.plans');
     const state = JSON.parse(readFileSync(join(root, '.omd/state.json'), 'utf8'));
     assert.equal(state.provider.notion.mappings['pages.home'].id, dogfoodRoot);
     assert.ok(state.provider.notion.pendingOperationIds.length > 0);
@@ -270,7 +281,29 @@ test('adoptNotion --yes writes contract with pages.home mapping and no UI scaffo
     assert.match(agents, /contentSource\.ssot/);
     assert.match(agents, /Documentation is always first/);
     assert.match(agents, /<!-- oh-my-docs:start -->/);
+    assert.match(agents, /Planning ≠ Plans|dbs\.plans/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('planCreateDocument targets dbs.plans for plan kind', () => {
+  const planned = planCreateDocument({
+    skillRoot,
+    kind: 'plan',
+    title: 'Example plan',
+    id: 'PLAN-example',
+  });
+  assert.equal(planned.ok, true);
+  assert.equal(planned.operation.key, 'dbs.plans');
+  assert.equal(planned.operation.payload.databaseKey, 'dbs.plans');
+  assert.equal(planned.operation.expectedParentKey, 'dbs.plans');
+
+  const prd = planCreateDocument({
+    skillRoot,
+    kind: 'prd',
+    title: 'Example PRD',
+    id: 'PRD-example',
+  });
+  assert.equal(prd.operation.key, 'dbs.prds');
 });

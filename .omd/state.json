@@ -6,12 +6,13 @@
     "distribution": "skill-template",
     "vocabularyDigest": "b1e9cd04c195828d578d42587e854c5b4da695dff98bd2d111bd68e321879556"
   },
-  "projectDigest": "776ea93b7e6a6f310f40860f8ec8c5f44c81977efe3d71875d7be6fa65b308aa",
+  "projectDigest": "8b176adbef7af04c6a603b551cd9ff6eb3b31ebe60ce5c969433fffafedabd74",
   "inventory": {
     "sections": [
       "home",
       "vision",
       "starting",
+      "domain",
       "workflow",
       "planning",
       "plans",
@@ -24,10 +25,10 @@
       "policies",
       "prds",
       "stories",
-      "plans",
-      "adr",
       "spec-data-model",
-      "spec-system-model"
+      "spec-system-model",
+      "plans",
+      "adr"
     ],
     "vocabulary": [
       "Card",
@@ -47,84 +48,323 @@
       "indexOnlyPageTree",
       "createCatalogNavigation"
     ],
-    "contentSource": "notion"
+    "contentSource": "supabase"
   },
-  "files": {},
+  "files": {
+    "docs/app/docs/[[...slug]]/page.tsx": {
+      "ownership": "omd-managed",
+      "digest": "3139a319936f339429e724083ca446a4eecc60e00420f110bf81676fd3e737a5"
+    },
+    "docs/app/docs/layout.tsx": {
+      "ownership": "omd-managed",
+      "digest": "978c406b54bbc28b2c43a797ac3d29d18e9884f92177d94d4f8d4025e17b5c54"
+    },
+    "docs/app/global.css": {
+      "ownership": "omd-managed",
+      "digest": "dd342a8b6ce407de9e41158e772fe6b2b170a12626b2227386ff3024b2200cc0"
+    },
+    "docs/app/layout.tsx": {
+      "ownership": "omd-managed",
+      "digest": "5e45abbd41e51507e85a188fab11dda0dbb5271cd1fab20b191d37ea619b3ed0"
+    },
+    "docs/app/md/[[...slug]]/route.ts": {
+      "ownership": "omd-managed",
+      "digest": "f9b4f0d23ebddffb7a5ca4c6c233e14dd9b7042eca471d28c2166fc70506d250"
+    },
+    "docs/app/page.tsx": {
+      "ownership": "omd-managed",
+      "digest": "13b96c43d3ef48fc27d5be0fa705a02395a6fb39c6aeb0e19005abc1f3ab5861"
+    },
+    "docs/content/docs/adr/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "8cc27a1e35d36d00db487da1868f9ebb28f5a42cb2ea658e2f2f324a8da4a627"
+    },
+    "docs/content/docs/adr/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "d94bf23be994d316e304734cc8d562e565a7e080c123655ac429a70b027bf608"
+    },
+    "docs/content/docs/domain/glossary/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "7253424a92c46bc1ddf3b63d8aa654da6f306b243afc71be46ee25eb274ddc59"
+    },
+    "docs/content/docs/domain/glossary/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "8fa99662dab5300674986f8cd6ed4f95280529717f4cf980df975c73acdd2b5b"
+    },
+    "docs/content/docs/domain/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "caf8027de20e20aaf572fec42c6c043bde9c063574926c03160a7a54c58c025a"
+    },
+    "docs/content/docs/domain/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "ea31ff8c01be8ecde5449c7ad5a99ed34c10a5f2d916325ea8f08156d88b1ae9"
+    },
+    "docs/content/docs/domain/models/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "d2d148f11898ce386fa0075ac6782ae7f89b7bb0d29471df763537d15e368b3c"
+    },
+    "docs/content/docs/domain/models/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "9333b7e5a30180abaaf7dc4266cafff367435197fd663ee8cd63568df43cc05a"
+    },
+    "docs/content/docs/domain/policies/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "b1197f99ed828d9478fe0712ed4b956f3957a44b07583e6edc3369e35bee2a98"
+    },
+    "docs/content/docs/domain/policies/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "1d948d7ffd594323b537dd2584356dda67e6266f98ab69540e3ff509de11961e"
+    },
+    "docs/content/docs/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "cdd0c2181f7813c99c565fca71463034a4071156769fbec50a5363eb24710100"
+    },
+    "docs/content/docs/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "bff77ba137b6fb8861e2e88c563bfecf6257f56249f20043b0bb08c965edc30b"
+    },
+    "docs/content/docs/planning/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "d4dee14ad31c5366043e6d213fb12b402c77021b7f1aa6b3ec1fc0dd94afabe2"
+    },
+    "docs/content/docs/planning/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "7fe139b87c52d981867ddd2f85cc9c0f5b7dc5429f581063fc8b289dcca771ee"
+    },
+    "docs/content/docs/planning/prds/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "5af4f840a388562286b8c79ab05c429d104970eeeafa9ef8f283beeea2549679"
+    },
+    "docs/content/docs/planning/prds/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "c508eea76f928ec851f15904db16037520e2c8635233d7b48706e2d368d2c73a"
+    },
+    "docs/content/docs/planning/stories/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "a669eed5d70ae33a0d67c5a47bc05c1a883460d349ad9b4f8ac57e1bcd24528a"
+    },
+    "docs/content/docs/planning/stories/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "9fb95791c23168cbb9c2501677b373678ff88b45f016919dd90581f430291fd7"
+    },
+    "docs/content/docs/plans/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "de52ea64a5a08dd1452e9cfeb3564a84a08ebde7a8f8786fd74dd2adf9e27f63"
+    },
+    "docs/content/docs/plans/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "f88036ef70d833b5508a276cdb2fe9e01650376be8adcd869265ec6f646f1c1b"
+    },
+    "docs/content/docs/spec/data-model/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "5da179dd7c8deccceb28c324ee50868fc121287a61a720496872868004b97526"
+    },
+    "docs/content/docs/spec/data-model/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "81903f9125bb756fdf4e7781d00f4cc9b72391d76641214f983265ccae0afa82"
+    },
+    "docs/content/docs/spec/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "fbda965b1bb5a8f01ce61b4e952ed58e6f86c9b5728b7763d7914b6b2c38e009"
+    },
+    "docs/content/docs/spec/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "7616a626840918b0734fc860f1eb57414e683d4db9888fc5134ba8a037997e91"
+    },
+    "docs/content/docs/spec/system-model/index.mdx": {
+      "ownership": "omd-managed",
+      "digest": "2cc55acb7522acd1656e6bc0fc213b75fb639d6db1a34114bf6b99f71d15a3c4"
+    },
+    "docs/content/docs/spec/system-model/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "3b10ea9ce5c49cd3f3d2ac5fde6db96fde5e12e78f280c674ab690ee33b3a501"
+    },
+    "docs/content/docs/starting.mdx": {
+      "ownership": "omd-managed",
+      "digest": "c008ad5e1b5027e4eac6af7fe3ad645f9873ed1c1656197364570bb30adf2910"
+    },
+    "docs/content/docs/vision.mdx": {
+      "ownership": "omd-managed",
+      "digest": "b5530c232b026a8f23cb715c95b2edf683c662efc785d1616b655f0669629f8c"
+    },
+    "docs/content/docs/workflow/development.mdx": {
+      "ownership": "omd-managed",
+      "digest": "da28dc5311ec4589161689929492ab3cfca458cabad2ca2f5a9fcf7610e2acd2"
+    },
+    "docs/content/docs/workflow/meta.json": {
+      "ownership": "omd-managed",
+      "digest": "dfb307a758d410cacb0bfd1b9549fb2d7fe31d91a2245f0313b608d69fc85038"
+    },
+    "docs/content/docs/workflow/planning.mdx": {
+      "ownership": "omd-managed",
+      "digest": "64fe5a88c8649d0843387074797272a115c4394aca7707b17d17f218500bde7b"
+    },
+    "docs/lib/layout.shared.tsx": {
+      "ownership": "omd-managed",
+      "digest": "e87213337a127cb7c28544b8767127501a8b62acf008415ced9a9bd2d8d00dc7"
+    },
+    "docs/lib/source.ts": {
+      "ownership": "omd-managed",
+      "digest": "6f4a4f7245b1eaa6c7023663a9dfc5a5215312c111d090b52bf5870d67fbd365"
+    },
+    "docs/next-env.d.ts": {
+      "ownership": "omd-managed",
+      "digest": "2ab3cee659ad146fb941d7420316fc2551863a2aec790736929b4ecdfc6cf24c"
+    },
+    "docs/next.config.mjs": {
+      "ownership": "omd-managed",
+      "digest": "5eb4ff3fea71df51aa67fe8d296d70ad89b1103a301489bcaf74858af172c59e"
+    },
+    "docs/package.json": {
+      "ownership": "omd-managed",
+      "digest": "ba2ac66c389953037247a6a42c7bf73eff895950aff55c12467f4a3d932fba68"
+    },
+    "docs/postcss.config.mjs": {
+      "ownership": "omd-managed",
+      "digest": "4cae941be9bc3bee9a6905e47ea7a51aee216d587d34a8cc4ae48f78fd6d8159"
+    },
+    "docs/scripts/check-planning.ts": {
+      "ownership": "omd-managed",
+      "digest": "1534d9d0bdc0cc472a0ba337b45b9faf10fbdd2b8e4e4d2fd32ffb76412dba44"
+    },
+    "docs/scripts/planning-validation.test.ts": {
+      "ownership": "omd-managed",
+      "digest": "10974136bf5243da8963c37de15fae13ae32bbf8c7e93e21c2b129729bb472d1"
+    },
+    "docs/scripts/planning-validation.ts": {
+      "ownership": "omd-managed",
+      "digest": "124f9e5df0f41836ff4eb4883e9e9b350c1874aa75ee5ab2d1cbe2fa32325657"
+    },
+    "docs/source.config.ts": {
+      "ownership": "omd-managed",
+      "digest": "493aed7454b2510309a9d046aea8e8fbaa67816a61254b29a5abcca5648f1da3"
+    },
+    "docs/templates/adr.mdx": {
+      "ownership": "omd-managed",
+      "digest": "47278df23f15738b9e939365b6e9b9c585731b6802328d03bc728f20efe5153d"
+    },
+    "docs/templates/implementation-plan.mdx": {
+      "ownership": "omd-managed",
+      "digest": "892592f742f5cf4c93c8c8aab3d06fd87bb7c68d9c85931d4e151ad1abbe801b"
+    },
+    "docs/templates/prd.mdx": {
+      "ownership": "omd-managed",
+      "digest": "da54d81f1f3b095cfdccf3fc1e0dac7223b1e2df2cae9d5de679c38c2238f8d5"
+    },
+    "docs/templates/spec.mdx": {
+      "ownership": "omd-managed",
+      "digest": "46db6f37daf895bd9058ac004d3f0abbfaf148c86102603460cd16b497b90bdf"
+    },
+    "docs/templates/user-story.mdx": {
+      "ownership": "omd-managed",
+      "digest": "306719713db2347582cb38c7766867b06534e29161f905ff8b122741d8d7b627"
+    },
+    "docs/tsconfig.json": {
+      "ownership": "omd-managed",
+      "digest": "ba69f67420437dbd4b9de486a67e5be423cea693ed1f246285ccb4950142b563"
+    },
+    "packages/docs-ui/package.json": {
+      "ownership": "omd-managed",
+      "digest": "193d09173794559aa6468488ec2f27a244a333c6f581c305a17aed659be2484c"
+    },
+    "packages/docs-ui/src/components/canvas.tsx": {
+      "ownership": "omd-managed",
+      "digest": "318f1443dbaa0f45a9569955b92a7b388b958f68166daa3ad103f78b90b8ef59"
+    },
+    "packages/docs-ui/src/components/decision.tsx": {
+      "ownership": "omd-managed",
+      "digest": "200bb80e53054da96e69be6606523328bfb3801b10283c380a2d6713bcb1caed"
+    },
+    "packages/docs-ui/src/components/doc-kind.tsx": {
+      "ownership": "omd-managed",
+      "digest": "256d7d219288fdfbb0a280e7b2c447bfee4c74ea139b2b16d05e6ae5cadd39d5"
+    },
+    "packages/docs-ui/src/components/doc-status.tsx": {
+      "ownership": "omd-managed",
+      "digest": "01b4c9f6f4bbdda7bfe534b25b951ac87014e1b0a1573c5988284b70d763f087"
+    },
+    "packages/docs-ui/src/components/inline-toc.tsx": {
+      "ownership": "omd-managed",
+      "digest": "a7575d1502a4a8bb7c190c0c5cda33f6ace413bc88a7e97c2c8c0875d250cd40"
+    },
+    "packages/docs-ui/src/components/sidebar-folder.tsx": {
+      "ownership": "omd-managed",
+      "digest": "111878de76966e1a7bd918e3f080822e5d3bf845fc07f16d98b31910f1d10baf"
+    },
+    "packages/docs-ui/src/components/spec-version.tsx": {
+      "ownership": "omd-managed",
+      "digest": "c1ab3c2fe298dadc880ae107c8f8a4d98e91bed20e12839f5e634911cb40e3fe"
+    },
+    "packages/docs-ui/src/doc-kinds.test.ts": {
+      "ownership": "omd-managed",
+      "digest": "833a7e3f2c164748bf69eb3330da94ad2a0f152dc8d53d20d2767ef9f8e9c3e1"
+    },
+    "packages/docs-ui/src/doc-kinds.ts": {
+      "ownership": "omd-managed",
+      "digest": "39cf1faecdcb987422fe6f874bfa736e2258168d1ec510394dcb87ade6af1c8c"
+    },
+    "packages/docs-ui/src/fumadocs.ts": {
+      "ownership": "omd-managed",
+      "digest": "58295e3cd6d3c75a2446bc6e3d5cfcd74f17a6afbd0cd76a4e840739dcf11598"
+    },
+    "packages/docs-ui/src/index.ts": {
+      "ownership": "omd-managed",
+      "digest": "23eb710eefaec53e907c33d911aeb16d4c34fc0bc91dc8ab00bb190f434815f4"
+    },
+    "packages/docs-ui/src/lib/classes.ts": {
+      "ownership": "omd-managed",
+      "digest": "5bd5364cb66a68d14bf40a40d603fe735ccaf5f1605c4d0d1b243a813b7cf568"
+    },
+    "packages/docs-ui/src/mdx.tsx": {
+      "ownership": "omd-managed",
+      "digest": "3ec28b9f4cb0b08c592a9fc39c18ed7b6bb6d1b7dcdbc023019b1d0deeedd297"
+    },
+    "packages/docs-ui/src/navigation.test.ts": {
+      "ownership": "omd-managed",
+      "digest": "09d410c56913797be35f58f5d783cde5f12dca41a46f9f4e7026f898b3055379"
+    },
+    "packages/docs-ui/src/navigation.ts": {
+      "ownership": "omd-managed",
+      "digest": "b0fb5d8222346aaa74d5d718d147fb60f52b5889ea8edc7b9b66d64594d3d0bd"
+    },
+    "packages/docs-ui/src/provider.ts": {
+      "ownership": "omd-managed",
+      "digest": "7e27fdbdffe4dbd63298ede617e9947c825ac93e9f39eb661b7c9febcdb4ead2"
+    },
+    "packages/docs-ui/tsconfig.json": {
+      "ownership": "omd-managed",
+      "digest": "e8e9b72fea06996119ac666a391e954fdf112f78784fe05cc1d1e8eb393a42c9"
+    },
+    "AGENTS.md": {
+      "ownership": "omd-managed",
+      "digest": "19aa3eeda670421efde90dc0398a783fc0978225cbe7a8da691be2a2255f3823"
+    },
+    "CLAUDE.md": {
+      "ownership": "omd-managed",
+      "digest": "b8a4d26aeeda1fdbd5262688652b02776cd50965b8fcbf0e918fca1419bac762"
+    }
+  },
   "provider": {
-    "notion": {
+    "supabase": {
       "schemaVersion": "1.0",
-      "schemaDigest": "97e50f001a617108a6a8f5b261a1d9ae655ee4f544b77c93144e66788eb2f975",
-      "lastObservedAt": "2026-07-26T06:50:23.576Z",
-      "lastManifestDigest": "97e50f001a617108a6a8f5b261a1d9ae655ee4f544b77c93144e66788eb2f975",
-      "mappings": {},
-      "pendingOperationIds": [
-        "ensure:toggles.sources",
-        "ensure:pages.home",
-        "ensure:pages.vision",
-        "ensure:pages.starting",
-        "ensure:pages.workflow",
-        "ensure:pages.workflow-planning",
-        "ensure:pages.development",
-        "ensure:pages.domain",
-        "ensure:pages.glossary",
-        "ensure:dbs.glossary",
-        "inline:dbs.glossary",
-        "ensure:pages.models",
-        "ensure:dbs.models",
-        "inline:dbs.models",
-        "ensure:pages.policies",
-        "ensure:dbs.policies",
-        "inline:dbs.policies",
-        "ensure:pages.planning",
-        "ensure:pages.prds",
-        "ensure:dbs.prds",
-        "inline:dbs.prds",
-        "ensure:pages.stories",
-        "ensure:dbs.stories",
-        "inline:dbs.stories",
-        "ensure:pages.spec",
-        "ensure:pages.data-model",
-        "ensure:dbs.data-model",
-        "inline:dbs.data-model",
-        "ensure:pages.system-model",
-        "ensure:dbs.system-model",
-        "inline:dbs.system-model",
-        "ensure:pages.cli",
-        "ensure:pages.plans",
-        "ensure:dbs.plans",
-        "inline:dbs.plans",
-        "ensure:pages.adrs",
-        "ensure:dbs.adrs",
-        "inline:dbs.adrs",
-        "sources:root-index",
-        "relation:dbs.prds:Stories:dbs.stories",
-        "relation:dbs.stories:PRDs:dbs.prds",
-        "relation:dbs.plans:PRD:dbs.prds",
-        "relation:dbs.plans:Stories:dbs.stories",
-        "relation:dbs.plans:Specs:dbs.data-model",
-        "relation:dbs.plans:Specs (System model):dbs.system-model",
-        "body:toggles.sources",
-        "body:pages.home",
-        "body:pages.vision",
-        "body:pages.starting",
-        "body:pages.workflow",
-        "body:pages.workflow-planning",
-        "body:pages.development",
-        "body:pages.domain",
-        "body:pages.glossary",
-        "body:pages.models",
-        "body:pages.policies",
-        "body:pages.planning",
-        "body:pages.prds",
-        "body:pages.stories",
-        "body:pages.spec",
-        "body:pages.data-model",
-        "body:pages.system-model",
-        "body:pages.cli",
-        "body:pages.plans",
-        "body:pages.adrs"
-      ],
-      "completedOperationIds": []
+      "schemaDigest": "e0c3451d562b0a074365eb12908246d91d4e1197daa4c8bace23d562179b0ef0",
+      "lastObservedAt": "2026-07-30T00:13:26.206Z",
+      "lastManifestDigest": "e0c3451d562b0a074365eb12908246d91d4e1197daa4c8bace23d562179b0ef0",
+      "projectRef": "myzrxjsadnuslrbmxmjy",
+      "pendingOperationIds": [],
+      "completedOperationIds": [
+        "supabase.apply_schema_1_0",
+        "supabase.link_project",
+        "supabase.seed_catalog.dbs.glossary",
+        "supabase.seed_catalog.dbs.models",
+        "supabase.seed_catalog.dbs.policies",
+        "supabase.seed_catalog.dbs.prds",
+        "supabase.seed_catalog.dbs.stories",
+        "supabase.seed_catalog.dbs.data-model",
+        "supabase.seed_catalog.dbs.system-model",
+        "supabase.seed_catalog.dbs.plans",
+        "supabase.seed_catalog.dbs.adrs"
+      ]
     }
   }
 }
