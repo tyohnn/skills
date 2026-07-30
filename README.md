@@ -7,8 +7,8 @@ Monorepo for agent skills. Canonical skill folders live under `skills/<slug>/`.
 not read `skill.yaml`; our scripts translate it.
 
 Content SSOT is the shared Supabase project `oh-my-docs` with `handbookId: skills` (see `.omd/project.json`).
-Local `docs/` + `packages/docs-ui` are the Fumadocs cache/renderer, not the
-handbook authority.
+`docs/` + `packages/docs-ui` are the Fumadocs renderer. Handbook MDX is not
+committed locally — pull from Supabase into gitignored `.supabase-content/`.
 
 ## Layout
 

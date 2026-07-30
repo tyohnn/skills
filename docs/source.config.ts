@@ -2,7 +2,7 @@ import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from 'fumadoc
 import { z } from 'zod';
 
 // For ssot:supabase, pull with `node scripts/pull-supabase-content.mjs` then
-// OMD_CONTENT_DIR=.supabase-content/docs. Local MDX is non-authoritative cache.
+// OMD_CONTENT_DIR=.supabase-content/docs. Committed local MDX content is not used.
 export const docs = defineDocs({
   dir: process.env.OMD_CONTENT_DIR || 'content/docs',
   docs: {
