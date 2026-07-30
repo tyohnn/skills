@@ -55,6 +55,12 @@ Dependency direction:
 `product vision → PRD → story → specification/ADR → implementation plan → code`
 <!-- oh-my-docs:end -->
 
+## Korean output
+
+한국어로 답변·PR·커밋·README·설계 메모·리뷰 코멘트를 쓸 때는
+`skills/natural-korean`을 기본으로 따른다. 장르가 아니라 말투다 —
+단정하지 말고, 이어서 말하고, 평소에 쓸 단어만 쓴다.
+
 ## Cursor Cloud specific instructions
 
 This is a pnpm + Node monorepo of agent skills. The "app" is the CLI tooling in
