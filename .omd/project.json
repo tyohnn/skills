@@ -1,21 +1,22 @@
 {
   "contractVersion": "1.0",
-  "mode": "greenfield",
+  "mode": "brownfield",
   "contentSource": {
-    "ssot": "notion",
-    "notion": {
-      "rootPageId": "3a9346da-c456-8024-802c-f881896d3bd3",
-      "rootPageUrl": "https://app.notion.com/p/paxhumana/tyohnn-skills-3a9346dac4568024802cf881896d3bd3",
-      "schemaVersion": "1.0"
+    "ssot": "supabase",
+    "supabase": {
+      "projectRef": "vtuprmfqbwhryjoznjxg",
+      "schemaVersion": "1.1",
+      "handbookId": "skills"
     }
   },
   "paths": {
     "docs": "docs",
-    "ui": "",
+    "ui": "packages/docs-ui",
     "content": "docs/content/docs",
     "templates": "docs/templates"
   },
   "informationArchitecture": {
+    "schemaVersion": "2.0",
     "sections": [
       {
         "id": "home",
@@ -35,6 +36,13 @@
         "id": "starting",
         "title": "Start here",
         "path": "starting",
+        "required": true,
+        "visible": true
+      },
+      {
+        "id": "domain",
+        "title": "Domain",
+        "path": "domain",
         "required": true,
         "visible": true
       },
@@ -61,7 +69,7 @@
       },
       {
         "id": "adr",
-        "title": "ADR",
+        "title": "ADRs",
         "path": "adr",
         "required": true,
         "visible": true
@@ -126,24 +134,6 @@
         "indexOnly": true
       },
       {
-        "id": "plans",
-        "label": "Implementation plans",
-        "prefix": [
-          "plans"
-        ],
-        "indexUrl": "/docs/plans",
-        "indexOnly": true
-      },
-      {
-        "id": "adr",
-        "label": "ADR",
-        "prefix": [
-          "adr"
-        ],
-        "indexUrl": "/docs/adr",
-        "indexOnly": true
-      },
-      {
         "id": "spec-data-model",
         "label": "Data model",
         "prefix": [
@@ -162,8 +152,77 @@
         ],
         "indexUrl": "/docs/spec/system-model",
         "indexOnly": true
+      },
+      {
+        "id": "plans",
+        "label": "Implementation plans",
+        "prefix": [
+          "plans"
+        ],
+        "indexUrl": "/docs/plans",
+        "indexOnly": true
+      },
+      {
+        "id": "adr",
+        "label": "ADR",
+        "prefix": [
+          "adr"
+        ],
+        "indexUrl": "/docs/adr",
+        "indexOnly": true
       }
-    ]
+    ],
+    "kindToDatabase": {
+      "prd": "dbs.prds",
+      "story": "dbs.stories",
+      "plan": "dbs.plans",
+      "adr": "dbs.adrs",
+      "spec": "dbs.data-model"
+    },
+    "nav": {
+      "topLevel": [
+        "pages.home",
+        "pages.vision",
+        "pages.starting",
+        "pages.workflow",
+        "pages.domain",
+        "pages.planning",
+        "pages.spec",
+        "pages.plans",
+        "pages.adrs"
+      ],
+      "localRootOrder": [
+        "pages.home",
+        "pages.vision",
+        "pages.starting",
+        "pages.domain",
+        "pages.workflow",
+        "pages.planning",
+        "pages.plans",
+        "pages.adrs",
+        "pages.spec"
+      ],
+      "nested": {
+        "pages.workflow": [
+          "pages.workflow-planning",
+          "pages.development"
+        ],
+        "pages.domain": [
+          "pages.glossary",
+          "pages.models",
+          "pages.policies"
+        ],
+        "pages.planning": [
+          "pages.prds",
+          "pages.stories"
+        ],
+        "pages.spec": [
+          "pages.data-model",
+          "pages.system-model"
+        ]
+      }
+    },
+    "graphDigest": "9d4c738f5ad6bf16c7843976432b123465e89b7c4e1c9f02c9a279a32bea0141"
   },
   "lifecycles": {
     "prd": {
@@ -354,7 +413,8 @@
   "ownership": {
     "omdGenerated": [
       ".omd/project.json",
-      ".omd/schemas/"
+      ".omd/schemas/",
+      "docs/content/docs/meta.json"
     ],
     "omdManaged": [
       "AGENTS.md",

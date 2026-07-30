@@ -34,7 +34,13 @@ function normalizeUrl(url: string) {
   return url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
-/** Hide registered catalog detail pages from the tree while retaining their index. */
+/**
+ * Hide registered catalog detail pages from the tree while retaining their index.
+ *
+ * Fumadocs deletes `folder.index` when `meta.json` lists `"index"` in `pages`,
+ * leaving the index as a normal child. Match either `node.index` or a child page
+ * whose URL is a registered catalog index, then collapse children.
+ */
 export function indexOnlyPageTree(indexUrls: Iterable<string>) {
   const normalizedUrls = new Set(Array.from(indexUrls, normalizeUrl));
   return {
@@ -42,9 +48,23 @@ export function indexOnlyPageTree(indexUrls: Iterable<string>) {
       {
         folder(node: PageTree.Folder): PageTree.Folder {
           const indexUrl = node.index?.url ? normalizeUrl(node.index.url) : undefined;
-          return indexUrl && normalizedUrls.has(indexUrl)
-            ? { ...node, children: [], defaultOpen: false }
-            : node;
+          if (indexUrl && normalizedUrls.has(indexUrl)) {
+            return { ...node, children: [], defaultOpen: false };
+          }
+
+          const indexChild = node.children.find(
+            (child): child is PageTree.Item =>
+              child.type === 'page' && normalizedUrls.has(normalizeUrl(child.url)),
+          );
+          if (!indexChild) return node;
+
+          return {
+            ...node,
+            name: node.name ?? indexChild.name,
+            index: node.index ?? indexChild,
+            children: [],
+            defaultOpen: false,
+          };
         },
       },
     ],

@@ -21,8 +21,12 @@
       "type": "object",
       "required": ["sections", "catalogs"],
       "properties": {
+        "schemaVersion": { "type": "string" },
         "sections": { "type": "array" },
-        "catalogs": { "type": "array" }
+        "catalogs": { "type": "array" },
+        "kindToDatabase": { "type": "object" },
+        "nav": { "type": "object" },
+        "graphDigest": { "type": "string" }
       }
     },
     "lifecycles": { "type": "object" },
@@ -44,7 +48,7 @@
       "type": "object",
       "required": ["ssot"],
       "properties": {
-        "ssot": { "enum": ["local", "notion"] },
+        "ssot": { "enum": ["local", "notion", "supabase"] },
         "notion": {
           "type": "object",
           "required": ["rootPageId", "rootPageUrl", "schemaVersion"],
@@ -52,6 +56,21 @@
             "rootPageId": { "type": "string", "minLength": 1 },
             "rootPageUrl": { "type": "string", "minLength": 1 },
             "schemaVersion": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "supabase": {
+          "type": "object",
+          "required": ["projectRef", "schemaVersion"],
+          "properties": {
+            "projectRef": { "type": "string", "minLength": 1 },
+            "schemaVersion": { "type": "string", "minLength": 1 },
+            "handbookId": {
+              "type": "string",
+              "minLength": 2,
+              "pattern": "^[a-z][a-z0-9-]{1,62}$",
+              "description": "Handbook namespace inside a shared Supabase project (schema omd_h_<id>)."
+            }
           },
           "additionalProperties": false
         }

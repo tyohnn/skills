@@ -6,8 +6,9 @@ Monorepo for agent skills. Canonical skill folders live under `skills/<slug>/`.
 `npx skills add …` (and package managers for non-skill packages). skills.sh does
 not read `skill.yaml`; our scripts translate it.
 
-Content SSOT is Notion (see `.omd/project.json`). There is no local docs app or
-`@oh-my-docs/ui` package in this repo.
+Content SSOT is the shared Supabase project `oh-my-docs` with `handbookId: skills` (see `.omd/project.json`).
+Local `docs/` + `packages/docs-ui` are the Fumadocs cache/renderer, not the
+handbook authority.
 
 ## Layout
 
@@ -53,5 +54,5 @@ effectively a no-op when the folder already exists).
 
 ## Planning
 
-Content SSOT is Notion (see `.omd/project.json`). Agents use the `oh-my-doc`
-skill for docs-first checks.
+Content SSOT is Supabase (`oh-my-docs` / handbook `skills`). Agents use the `oh-my-doc`
+skill for docs-first checks and the Supabase content port for handbook writes.

@@ -40,6 +40,6 @@ node <skill>/scripts/omd.mjs check --json
 ```
 
 Before the first adopt, ask the user to choose SSOT (`local` docs app vs
-`notion`). Greenfield adopt without `--ssot` fails with `needsSsot`.
+`notion` | `supabase`). Greenfield adopt without `--ssot` fails with `needsSsot`.
 
 Do not tell users to run a public npm CLI.
