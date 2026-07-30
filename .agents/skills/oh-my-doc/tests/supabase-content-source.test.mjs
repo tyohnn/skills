@@ -7,6 +7,7 @@ import test from 'node:test';
 
 import {
   createContentSource,
+  handbookPgSchema,
   normalizeContentSource,
 } from '../runtime/omd-contract.mjs';
 import {
@@ -38,6 +39,29 @@ test('createContentSource requires projectRef for supabase', () => {
   const cs = createContentSource('supabase', null, { projectRef: 'ref1234567890' });
   assert.equal(cs.ssot, 'supabase');
   assert.equal(cs.supabase.schemaVersion, '1.0');
+});
+
+test('handbookId normalizes and maps to pg schema', () => {
+  const normalized = normalizeContentSource({
+    contentSource: {
+      ssot: 'supabase',
+      supabase: {
+        projectRef: 'abcdefghijklmnop',
+        schemaVersion: '1.1',
+        handbookId: 'oh-my-docs',
+      },
+    },
+  });
+  assert.equal(normalized.supabase.handbookId, 'oh-my-docs');
+  assert.equal(handbookPgSchema('oh-my-docs'), 'omd_h_oh_my_docs');
+  assert.equal(handbookPgSchema('tyohnn-studio'), 'omd_h_tyohnn_studio');
+  assert.equal(handbookPgSchema(undefined), 'public');
+  const cs = createContentSource('supabase', null, {
+    projectRef: 'ref1234567890',
+    handbookId: 'skills',
+    schemaVersion: '1.1',
+  });
+  assert.equal(cs.supabase.handbookId, 'skills');
 });
 
 test('planProvision is idempotent for the same inputs', () => {

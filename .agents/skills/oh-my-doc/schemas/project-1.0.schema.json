@@ -64,7 +64,13 @@
           "required": ["projectRef", "schemaVersion"],
           "properties": {
             "projectRef": { "type": "string", "minLength": 1 },
-            "schemaVersion": { "type": "string", "minLength": 1 }
+            "schemaVersion": { "type": "string", "minLength": 1 },
+            "handbookId": {
+              "type": "string",
+              "minLength": 2,
+              "pattern": "^[a-z][a-z0-9-]{1,62}$",
+              "description": "Handbook namespace inside a shared Supabase project (schema omd_h_<id>)."
+            }
           },
           "additionalProperties": false
         }

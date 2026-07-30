@@ -4,8 +4,9 @@
   "contentSource": {
     "ssot": "supabase",
     "supabase": {
-      "projectRef": "myzrxjsadnuslrbmxmjy",
-      "schemaVersion": "1.0"
+      "projectRef": "vtuprmfqbwhryjoznjxg",
+      "schemaVersion": "1.1",
+      "handbookId": "skills"
     }
   },
   "paths": {

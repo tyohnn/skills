@@ -5,7 +5,7 @@ export type ContentSsot = 'local' | 'notion' | 'supabase';
 
 export type ContentSourceContract = {
   ssot: ContentSsot;
-  supabase?: { projectRef: string; schemaVersion: string };
+  supabase?: { projectRef: string; schemaVersion: string; handbookId?: string };
   notion?: { rootPageId: string; rootPageUrl: string; schemaVersion: string };
 };
 
@@ -21,9 +21,21 @@ function resolveProjectJson(): string | null {
   return null;
 }
 
+/** True when Vercel↔Supabase Connect (or local .env) provides publishable REST access. */
+export function hasSupabaseConnectEnv(): boolean {
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  return Boolean(url && key);
+}
+
 /**
  * Read handbook SSOT from repo-root `.omd/project.json`.
- * Missing contract ⇒ local (dogfood / legacy).
+ * Missing contract ⇒ local (legacy). SSOT is chosen at adopt time — not via
+ * a Vercel `OMD_CONTENT_SSOT` env.
  */
 export function readContentSource(): ContentSourceContract {
   const path = resolveProjectJson();
@@ -36,4 +48,9 @@ export function readContentSource(): ContentSourceContract {
 
 export function isSupabaseSsot(): boolean {
   return readContentSource().ssot === 'supabase';
+}
+
+/** Materialize remote rows when contract is supabase and Connect env exists. */
+export function shouldMaterializeSupabaseContent(): boolean {
+  return isSupabaseSsot() && hasSupabaseConnectEnv();
 }

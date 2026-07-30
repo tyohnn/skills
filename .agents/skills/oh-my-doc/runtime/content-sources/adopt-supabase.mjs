@@ -34,6 +34,7 @@ import {
 export function adoptSupabaseProject(options) {
   const planned = planProvision({
     skillRoot: options.skillRoot,
+    cwd: options.cwd,
     projectRef: options.projectRef,
     schemaVersion: SUPABASE_SCHEMA_VERSION,
   });

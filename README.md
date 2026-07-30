@@ -6,7 +6,7 @@ Monorepo for agent skills. Canonical skill folders live under `skills/<slug>/`.
 `npx skills add …` (and package managers for non-skill packages). skills.sh does
 not read `skill.yaml`; our scripts translate it.
 
-Content SSOT is Supabase project `tyohnn-skills-docs` (see `.omd/project.json`).
+Content SSOT is the shared Supabase project `oh-my-docs` with `handbookId: skills` (see `.omd/project.json`).
 Local `docs/` + `packages/docs-ui` are the Fumadocs cache/renderer, not the
 handbook authority.
 
@@ -54,5 +54,5 @@ effectively a no-op when the folder already exists).
 
 ## Planning
 
-Content SSOT is Supabase (`tyohnn-skills-docs`). Agents use the `oh-my-doc`
+Content SSOT is Supabase (`oh-my-docs` / handbook `skills`). Agents use the `oh-my-doc`
 skill for docs-first checks and the Supabase content port for handbook writes.

@@ -72,7 +72,7 @@ export function stableStringify(value) {
  * @returns {{
  *   ssot: 'local' | 'notion' | 'supabase',
  *   notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string },
- *   supabase: null | { projectRef: string, schemaVersion: string },
+ *   supabase: null | { projectRef: string, schemaVersion: string, handbookId?: string },
  * }}
  */
 export function normalizeContentSource(project) {
@@ -97,22 +97,42 @@ export function normalizeContentSource(project) {
   }
   if (raw.ssot === 'supabase') {
     const supabase = raw.supabase && typeof raw.supabase === 'object' ? raw.supabase : {};
+    /** @type {{ projectRef: string, schemaVersion: string, handbookId?: string }} */
+    const next = {
+      projectRef: String(supabase.projectRef ?? ''),
+      schemaVersion: String(supabase.schemaVersion ?? '1.0'),
+    };
+    if (supabase.handbookId) {
+      next.handbookId = String(supabase.handbookId);
+    }
     return {
       ssot: 'supabase',
       notion: null,
-      supabase: {
-        projectRef: String(supabase.projectRef ?? ''),
-        schemaVersion: String(supabase.schemaVersion ?? '1.0'),
-      },
+      supabase: next,
     };
   }
   throw new Error(`unsupported contentSource.ssot: ${raw.ssot}`);
 }
 
 /**
+ * Map contract handbookId → Postgres schema name (`omd_h_<sanitized>`).
+ * Empty/missing handbookId ⇒ legacy `public` tables.
+ *
+ * @param {string | null | undefined} handbookId
+ */
+export function handbookPgSchema(handbookId) {
+  if (!handbookId) return 'public';
+  const id = String(handbookId);
+  if (!/^[a-z][a-z0-9-]{1,62}$/.test(id)) {
+    throw new Error(`invalid handbookId: ${id}`);
+  }
+  return `omd_h_${id.replace(/-/g, '_')}`;
+}
+
+/**
  * @param {'local' | 'notion' | 'supabase'} [ssot]
  * @param {{ rootPageId: string, rootPageUrl: string, schemaVersion?: string } | null} [notion]
- * @param {{ projectRef: string, schemaVersion?: string } | null} [supabase]
+ * @param {{ projectRef: string, schemaVersion?: string, handbookId?: string } | null} [supabase]
  */
 export function createContentSource(ssot = 'local', notion = null, supabase = null) {
   if (ssot === 'local') {
@@ -135,12 +155,17 @@ export function createContentSource(ssot = 'local', notion = null, supabase = nu
     if (!supabase?.projectRef) {
       throw new Error('supabase contentSource requires projectRef');
     }
+    /** @type {{ projectRef: string, schemaVersion: string, handbookId?: string }} */
+    const next = {
+      projectRef: supabase.projectRef,
+      schemaVersion: supabase.schemaVersion ?? '1.0',
+    };
+    if (supabase.handbookId) {
+      next.handbookId = String(supabase.handbookId);
+    }
     return {
       ssot: 'supabase',
-      supabase: {
-        projectRef: supabase.projectRef,
-        schemaVersion: supabase.schemaVersion ?? '1.0',
-      },
+      supabase: next,
     };
   }
   throw new Error(`unsupported contentSource.ssot: ${ssot}`);

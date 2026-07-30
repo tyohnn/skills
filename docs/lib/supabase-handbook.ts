@@ -33,10 +33,11 @@ function restBase(): { url: string; key: string } {
   const key =
     process.env.SUPABASE_ANON_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
     throw new Error(
-      'SUPABASE_URL and SUPABASE_ANON_KEY (or NEXT_PUBLIC_*) are required for remote handbook reads.',
+      'SUPABASE_URL and a publishable/anon key (SUPABASE_* or NEXT_PUBLIC_*) are required for remote handbook reads.',
     );
   }
   return { url: url.replace(/\/$/, ''), key };

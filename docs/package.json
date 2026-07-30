@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && pnpm run check:planning",
+    "build": "node scripts/build-with-content.mjs",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
     "test": "node --test --experimental-strip-types scripts/*.test.ts",
     "typecheck": "tsc --noEmit",
     "check:planning": "node --experimental-strip-types scripts/check-planning.ts",
-    "pull:supabase": "node scripts/pull-supabase-content.mjs"
+    "pull:supabase": "node scripts/pull-supabase-content.mjs",
+    "prepare:content": "node scripts/prepare-content.mjs",
+    "push:supabase": "node scripts/push-supabase-content.mjs"
   },
   "dependencies": {
     "@oh-my-docs/ui": "workspace:*",

@@ -76,11 +76,12 @@ canonical command list.
   (`node --test shared/runtime/*.test.mjs`), `node scripts/create-skill.mjs`,
   `node scripts/emit-skill-md.mjs --all`, `node scripts/install-deps.mjs`,
   `node scripts/sync-skill-runtime.mjs`.
-- **Content SSOT is Supabase** (`.omd/project.json` → project
-  `tyohnn-skills-docs` / ref `myzrxjsadnuslrbmxmjy`). Local `docs/` is a
-  Fumadocs cache/scaffold, not the handbook authority. Mutate handbook rows via
-  the oh-my-doc Supabase content port (MCP/`execute_sql`), then
-  `node docs/scripts/pull-supabase-content.mjs` when you need a local materialization.
+- **Content SSOT is Supabase** (`.omd/project.json` → shared project
+  `oh-my-docs` / ref `vtuprmfqbwhryjoznjxg`, `handbookId: skills`,
+  schema `omd_h_skills`). Local `docs/` is a Fumadocs cache/scaffold, not the
+  handbook authority. Mutate rows via the oh-my-doc content port
+  (MCP/`execute_sql` on `omd_h_skills`), then
+  `node docs/scripts/pull-supabase-content.mjs` to materialize locally.
 - Root turbo tasks (`pnpm build` / `dev` / `typecheck` / `test`) still recurse on
   the root `skills` package — do not run them. Use `pnpm --filter docs …` for the
   docs app, and the skill node scripts below for the monorepo tooling.

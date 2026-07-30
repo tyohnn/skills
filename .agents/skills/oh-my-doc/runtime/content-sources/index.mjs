@@ -72,13 +72,18 @@ export function resolveContentSource(options) {
   if (ssot === 'supabase') {
     const projectRef =
       options.projectRef ?? fromContract?.supabase?.projectRef ?? null;
+    /** @type {{ projectRef: string | null, schemaVersion: string, handbookId?: string }} */
+    const supabase = {
+      projectRef,
+      schemaVersion: fromContract?.supabase?.schemaVersion ?? SUPABASE_SCHEMA_VERSION,
+    };
+    if (fromContract?.supabase?.handbookId) {
+      supabase.handbookId = fromContract.supabase.handbookId;
+    }
     return {
       ssot: 'supabase',
       notion: null,
-      supabase: {
-        projectRef,
-        schemaVersion: fromContract?.supabase?.schemaVersion ?? SUPABASE_SCHEMA_VERSION,
-      },
+      supabase,
       contract: existing,
     };
   }

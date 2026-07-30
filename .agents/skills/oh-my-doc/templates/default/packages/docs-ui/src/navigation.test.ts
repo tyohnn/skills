@@ -57,3 +57,24 @@ test('collapses configured catalog folders to their index', () => {
     defaultOpen: false,
   });
 });
+
+test('collapses catalogs when Fumadocs demoted index into children', () => {
+  const [transformer] = indexOnlyPageTree(['/docs/planning/prds']).transformers;
+  assert.ok(transformer);
+  const folder = {
+    type: 'folder' as const,
+    name: 'prds',
+    children: [
+      { type: 'page' as const, name: 'Product requirements', url: '/docs/planning/prds' },
+      { type: 'page' as const, name: 'Docs foundation', url: '/docs/planning/prds/prd-docs-foundation' },
+    ],
+  };
+  const result = transformer.folder(folder as Parameters<typeof transformer.folder>[0]);
+  assert.equal(result.children.length, 0);
+  assert.equal(result.defaultOpen, false);
+  assert.deepEqual(result.index, {
+    type: 'page',
+    name: 'Product requirements',
+    url: '/docs/planning/prds',
+  });
+});

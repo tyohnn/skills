@@ -6,7 +6,7 @@
     "distribution": "skill-template",
     "vocabularyDigest": "b1e9cd04c195828d578d42587e854c5b4da695dff98bd2d111bd68e321879556"
   },
-  "projectDigest": "8b176adbef7af04c6a603b551cd9ff6eb3b31ebe60ce5c969433fffafedabd74",
+  "projectDigest": "5d6da42aaf76a20627c3fcff7bd92441ff004cd7114523b29929f7803256a8da",
   "inventory": {
     "sections": [
       "home",
@@ -346,24 +346,17 @@
   },
   "provider": {
     "supabase": {
-      "schemaVersion": "1.0",
-      "schemaDigest": "e0c3451d562b0a074365eb12908246d91d4e1197daa4c8bace23d562179b0ef0",
-      "lastObservedAt": "2026-07-30T00:13:26.206Z",
-      "lastManifestDigest": "e0c3451d562b0a074365eb12908246d91d4e1197daa4c8bace23d562179b0ef0",
-      "projectRef": "myzrxjsadnuslrbmxmjy",
+      "schemaVersion": "1.1",
+      "schemaDigest": "shared-oh-my-docs-1.1",
+      "lastObservedAt": "2026-07-30T04:13:55.972Z",
+      "lastManifestDigest": "shared-oh-my-docs-1.1",
+      "projectRef": "vtuprmfqbwhryjoznjxg",
+      "handbookId": "skills",
       "pendingOperationIds": [],
       "completedOperationIds": [
-        "supabase.apply_schema_1_0",
+        "supabase.apply_schema_1_1",
         "supabase.link_project",
-        "supabase.seed_catalog.dbs.glossary",
-        "supabase.seed_catalog.dbs.models",
-        "supabase.seed_catalog.dbs.policies",
-        "supabase.seed_catalog.dbs.prds",
-        "supabase.seed_catalog.dbs.stories",
-        "supabase.seed_catalog.dbs.data-model",
-        "supabase.seed_catalog.dbs.system-model",
-        "supabase.seed_catalog.dbs.plans",
-        "supabase.seed_catalog.dbs.adrs"
+        "supabase.ensure_handbook_skills"
       ]
     }
   }
