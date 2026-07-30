@@ -78,10 +78,10 @@ canonical command list.
   `node scripts/sync-skill-runtime.mjs`.
 - **Content SSOT is Supabase** (`.omd/project.json` → shared project
   `oh-my-docs` / ref `vtuprmfqbwhryjoznjxg`, `handbookId: skills`,
-  schema `omd_h_skills`). Local `docs/` is a Fumadocs cache/scaffold, not the
-  handbook authority. Mutate rows via the oh-my-doc content port
-  (MCP/`execute_sql` on `omd_h_skills`), then
-  `node docs/scripts/pull-supabase-content.mjs` to materialize locally.
+  schema `omd_h_skills`). Do not commit handbook MDX under `docs/content/docs`.
+  Materialize with `node docs/scripts/pull-supabase-content.mjs` (gitignored
+  `.supabase-content/`). Mutate rows via the content port
+  (MCP/`execute_sql` on `omd_h_skills`).
 - Root turbo tasks (`pnpm build` / `dev` / `typecheck` / `test`) still recurse on
   the root `skills` package — do not run them. Use `pnpm --filter docs …` for the
   docs app, and the skill node scripts below for the monorepo tooling.
