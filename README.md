@@ -25,7 +25,8 @@ scripts/
   sync-skill-runtime.mjs
 ```
 
-Seed skills: `holiday-cfo`, `holiday`, `img2threejs`, `concept-to-threejs`.
+Seed skills: `holiday-cfo`, `holiday`, `img2threejs`, `concept-to-threejs`,
+`natural-korean`.
 
 Out of repo (external deps only): `oh-my-docs`, `chartcn`. Out of scope: `3d-game-dev`.
 

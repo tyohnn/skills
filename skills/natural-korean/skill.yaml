@@ -1,0 +1,15 @@
+name: natural-korean
+version: 0.1.0
+kind: utility
+domains:
+  - writing
+description: >
+  한국어 답변·PR·커밋·README·설계 메모·리뷰 코멘트를 구어에 가까운 설명체로 쓴다. 단정 연타·가짜 힘 동사·선언 헤더·문어 과다를 줄이고, 사람이 이어서 말하듯 이어 쓴다. Use whenever writing Korean for the user or in repo docs.
+
+dependencies:
+  skills: []
+  packages: []
+
+entrypoints:
+  instructions: SKILL.md
+  ensureDeps: scripts/ensure-deps.mjs
