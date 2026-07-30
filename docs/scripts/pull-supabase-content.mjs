@@ -34,6 +34,234 @@ const CATALOG_DIRS = {
   'dbs.system-model': 'spec/system-model',
 };
 
+/** @type {Record<string, { layout: 'status-table' | 'title-table' | 'list'; statusKey?: string; empty: string }>} */
+const CATALOG_INDEX_LAYOUT = {
+  'dbs.prds': {
+    layout: 'status-table',
+    statusKey: 'status',
+    empty: 'Add PRDs beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.stories': {
+    layout: 'title-table',
+    empty: 'Add stories beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.plans': {
+    layout: 'status-table',
+    statusKey: 'stage',
+    empty: 'Add plans beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.adrs': {
+    layout: 'status-table',
+    statusKey: 'stage',
+    empty: 'Add ADRs beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.glossary': {
+    layout: 'list',
+    empty: 'Add entries beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.models': {
+    layout: 'list',
+    empty: 'Add entries beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.policies': {
+    layout: 'list',
+    empty: 'Add entries beside this index and register each slug in `meta.json`.',
+  },
+  'dbs.data-model': {
+    layout: 'list',
+    empty:
+      'Add detail pages beside this index and register each slug in `meta.json`.\nChildren stay out of the sidebar.',
+  },
+  'dbs.system-model': {
+    layout: 'list',
+    empty:
+      'Add detail pages beside this index and register each slug in `meta.json`.\nChildren stay out of the sidebar.',
+  },
+};
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+/**
+ * @param {any} doc
+ */
+function catalogEntryLabel(doc) {
+  const fm = doc?.frontmatter && typeof doc.frontmatter === 'object' ? doc.frontmatter : {};
+  return String(doc?.ticker || fm.ticker || fm.id || doc?.id || '').trim();
+}
+
+/**
+ * @param {any} doc
+ */
+function catalogEntryTitle(doc) {
+  const fm = doc?.frontmatter && typeof doc.frontmatter === 'object' ? doc.frontmatter : {};
+  return String(fm.title || catalogEntryLabel(doc) || 'Untitled').trim();
+}
+
+/**
+ * @param {any} doc
+ * @param {string} [statusKey]
+ */
+function catalogEntryStatus(doc, statusKey = 'status') {
+  const fm = doc?.frontmatter && typeof doc.frontmatter === 'object' ? doc.frontmatter : {};
+  return String(fm[statusKey] || fm.status || fm.stage || '').trim();
+}
+
+/**
+ * Build catalog index body MDX from detail documents (sidebar still uses meta.json).
+ *
+ * @param {string} catalogKey
+ * @param {string} dir
+ * @param {string[]} pages
+ * @param {Array<{ id?: string, path?: string, ticker?: string, frontmatter?: Record<string, any> }>} docs
+ */
+export function buildCatalogIndexBody(catalogKey, dir, pages, docs) {
+  const layout = CATALOG_INDEX_LAYOUT[catalogKey] ?? {
+    layout: 'list',
+    empty: 'Add entries beside this index and register each slug in `meta.json`.',
+  };
+  const detailSlugs = (Array.isArray(pages) ? pages : []).filter((p) => p && p !== 'index');
+  const bySlug = new Map();
+  for (const doc of docs) {
+    if (!doc?.path || !String(doc.path).startsWith(`${dir}/`)) continue;
+    const slug = String(doc.path).slice(dir.length + 1);
+    if (!slug || slug === 'index' || slug.includes('/')) continue;
+    bySlug.set(slug, doc);
+  }
+  const entries = detailSlugs
+    .map((slug) => {
+      const doc = bySlug.get(slug);
+      if (!doc) return null;
+      return { slug, doc };
+    })
+    .filter(Boolean);
+
+  if (entries.length === 0) {
+    if (layout.layout === 'list') return `${layout.empty}\n`;
+    const colSpan = layout.layout === 'title-table' ? 2 : 3;
+    const headers =
+      layout.layout === 'title-table'
+        ? `        <th className="py-2 pr-4 font-medium">ID</th>
+        <th className="py-2 font-medium">Title</th>`
+        : `        <th className="py-2 pr-4 font-medium">ID</th>
+        <th className="py-2 pr-4 font-medium">Status</th>
+        <th className="py-2 font-medium">Title</th>`;
+    return `<div className="not-prose overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b text-left">
+${headers}
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b border-fd-border/60">
+        <td className="py-3 pr-4 text-fd-muted-foreground" colSpan={${colSpan}}>
+          ${layout.empty}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+  }
+
+  if (layout.layout === 'list') {
+    const lines = entries.map(({ slug, doc }) => {
+      const id = catalogEntryLabel(doc);
+      const title = catalogEntryTitle(doc);
+      const href = `/docs/${dir}/${slug}`;
+      return `- [${id || title}](${href})${id && title !== id ? ` — ${title}` : ''}`;
+    });
+    return `${lines.join('\n')}\n`;
+  }
+
+  if (layout.layout === 'title-table') {
+    const rows = entries
+      .map(({ slug, doc }) => {
+        const id = escapeHtml(catalogEntryLabel(doc));
+        const title = escapeHtml(catalogEntryTitle(doc));
+        const href = `/docs/${dir}/${slug}`;
+        return `      <tr className="border-b border-fd-border/60">
+        <td className="py-3 pr-4 font-mono text-xs"><a href="${href}">${id}</a></td>
+        <td className="py-3"><a href="${href}">${title}</a></td>
+      </tr>`;
+      })
+      .join('\n');
+    return `<div className="not-prose overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b text-left">
+        <th className="py-2 pr-4 font-medium">ID</th>
+        <th className="py-2 font-medium">Title</th>
+      </tr>
+    </thead>
+    <tbody>
+${rows}
+    </tbody>
+  </table>
+</div>
+`;
+  }
+
+  const rows = entries
+    .map(({ slug, doc }) => {
+      const id = escapeHtml(catalogEntryLabel(doc));
+      const status = escapeHtml(catalogEntryStatus(doc, layout.statusKey));
+      const title = escapeHtml(catalogEntryTitle(doc));
+      const href = `/docs/${dir}/${slug}`;
+      return `      <tr className="border-b border-fd-border/60">
+        <td className="py-3 pr-4 font-mono text-xs"><a href="${href}">${id}</a></td>
+        <td className="py-3 pr-4">${status}</td>
+        <td className="py-3"><a href="${href}">${title}</a></td>
+      </tr>`;
+    })
+    .join('\n');
+  return `<div className="not-prose overflow-x-auto">
+  <table className="w-full text-sm">
+    <thead>
+      <tr className="border-b text-left">
+        <th className="py-2 pr-4 font-medium">ID</th>
+        <th className="py-2 pr-4 font-medium">Status</th>
+        <th className="py-2 font-medium">Title</th>
+      </tr>
+    </thead>
+    <tbody>
+${rows}
+    </tbody>
+  </table>
+</div>
+`;
+}
+
+/**
+ * Rewrite catalog index document bodies from catalog meta + detail rows.
+ *
+ * @param {Array<{ id?: string, path?: string, ticker?: string, frontmatter?: Record<string, any>, body_mdx?: string }>} docs
+ * @param {Array<{ catalog_key: string, pages: string[] }>} catalogs
+ */
+export function applyCatalogIndexBodies(docs, catalogs) {
+  const byPath = new Map(docs.map((doc) => [doc.path, doc]));
+  for (const catalog of catalogs) {
+    const dir = CATALOG_DIRS[catalog.catalog_key];
+    if (!dir) continue;
+    const indexPath = `${dir}/index`;
+    const indexDoc = byPath.get(indexPath);
+    if (!indexDoc) continue;
+    indexDoc.body_mdx = buildCatalogIndexBody(
+      catalog.catalog_key,
+      dir,
+      catalog.pages,
+      docs,
+    );
+  }
+  return docs;
+}
+
 /**
  * @param {string} repoRootPath
  */
@@ -235,6 +463,8 @@ async function main() {
     'omd_catalog_meta',
     '?select=catalog_key,pages&order=catalog_key.asc',
   );
+
+  applyCatalogIndexBodies(docs, catalogs);
 
   rmSync(outRoot, { recursive: true, force: true });
   mkdirSync(outRoot, { recursive: true });
