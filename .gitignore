@@ -17,4 +17,8 @@ skills-lock.json
 skills/*/skills-lock.json
 docs/.supabase-content/
 docs/.env.local
+<<<<<<< HEAD
 docs/content/docs/
+=======
+.vercel
+>>>>>>> origin/main
