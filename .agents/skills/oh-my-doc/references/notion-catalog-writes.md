@@ -5,20 +5,23 @@ section.
 
 | Kind | Notion destination | Local destination |
 |---|---|---|
-| PRD | Row in `dbs.prds` on **PRDs** (under Planning) | `planning/prds/` + `meta.json` |
-| Story | Row in `dbs.stories` on **Stories** | `planning/stories/` + `meta.json` |
-| Plan | Row in `dbs.plans` on top-level **Plans** | `plans/` + `meta.json` |
-| ADR | Row in `dbs.adrs` on top-level **ADRs** | `adr/` + `meta.json` |
-| Spec | Row in `dbs.data-model` / `dbs.system-model` | `spec/data-model` or `spec/system-model` |
+| PRD | Row in `dbs.prds` on **Home** | `planning/prds/` + `meta.json` |
+| Story | Row in `dbs.stories` on **Home** | `planning/stories/` + `meta.json` |
+| Plan | Row in `dbs.plans` on **Home** | `plans/` + `meta.json` |
+| ADR | Row in `dbs.adrs` on **Home** | `adr/` + `meta.json` |
+| Spec | Row in `dbs.data-model` / `dbs.system-model` on **Home** | `spec/data-model` or `spec/system-model` |
 
 ## Do / don’t
 
-- **Do** create implementation plans in **Plans** (`pages.plans` → `dbs.plans`).
-- **Don’t** create a Plan as a child page under **Planning**.
-- **Planning** only nests the PRDs and Stories catalog pages.
-- **Plans** is a sibling of Planning at the handbook root (same for ADRs).
+- **Do** create catalog rows in the inline DBs stacked on Notion Home.
+- **Don’t** create catalog child pages or sidebar nav for Notion SSOT.
+- **Don’t** create a Plan as a free-form page outside `dbs.plans`.
+- **Don’t** set `OMD ID` when creating a Notion row. It is a Notion
+  `UNIQUE_ID` column (auto-generated; prefixes like `PRD`, `US`, `PLAN`).
+  Title + optional Summary/Status only.
 
-Machine map: `references/handbook-ia-graph.json` → `kindToDatabase` and each
-catalog page’s `writeTarget` / `forbiddenParents`.
+Machine map: `references/notion-ia-graph.json` → `kindToDatabase` (Notion);
+`handbook-ia-graph.json` for local.
 
 Runtime: `planCreateDocument` / local `omd new` target those destinations.
+Local MDX still uses slug-style frontmatter `id`; Notion SSOT does not.

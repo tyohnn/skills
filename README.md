@@ -6,9 +6,11 @@ Monorepo for agent skills. Canonical skill folders live under `skills/<slug>/`.
 `npx skills add …` (and package managers for non-skill packages). skills.sh does
 not read `skill.yaml`; our scripts translate it.
 
-Content SSOT is the shared Supabase project `oh-my-docs` with `handbookId: skills` (see `.omd/project.json`).
-`docs/` + `packages/docs-ui` are the Fumadocs renderer. Handbook MDX is not
-committed locally — pull from Supabase into gitignored `.supabase-content/`.
+Content SSOT is Notion (see `.omd/project.json` → `contentSource.notion`).
+Handbook Home:
+https://app.notion.com/p/paxhumana/tyohnn-skills-3a9346dac4568024802cf881896d3bd3
+Catalogs are stacked inline databases under `# 도메인` / `# 기획` / `# 개발`.
+Local `docs/` is not the handbook SSOT.
 
 ## Layout
 
@@ -55,5 +57,6 @@ effectively a no-op when the folder already exists).
 
 ## Planning
 
-Content SSOT is Supabase (`oh-my-docs` / handbook `skills`). Agents use the `oh-my-doc`
-skill for docs-first checks and the Supabase content port for handbook writes.
+Content SSOT is Notion. Agents use the `oh-my-doc` skill (`inspect` / `check` /
+`new`) and Notion MCP for handbook writes. UNIQUE_ID prefixes in this workspace
+are `SK*` (e.g. `SKPRD`, `SKPLAN`) because default prefixes were already taken.

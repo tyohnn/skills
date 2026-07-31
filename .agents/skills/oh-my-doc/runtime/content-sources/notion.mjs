@@ -7,6 +7,7 @@ import { parseNotionRoot } from './notion-root.mjs';
 import {
   defaultPageBody,
   renderSidebarPageContent,
+  renderStackedHomeContent,
   resolveActiveSection,
   validateManifestSidebarChrome,
   validateSidebarChrome,
@@ -110,7 +111,8 @@ export function planProvision(options) {
         mcp: {
           tool: 'notion-create-database',
           parentFrom: object.parent,
-          notes: 'Creates full-page DB; always follow with set_inline when inline=true.',
+          notes:
+            'Creates full-page DB; always follow with set_inline when inline=true. Map property types to DDL: title→TITLE, rich_text→RICH_TEXT, select→SELECT(...), multi_select→MULTI_SELECT, relation→RELATION(ds), unique_id→UNIQUE_ID PREFIX \'<prefix>\'. Never write OMD ID on row create — it is auto-generated.',
         },
       });
       if (object.inline === true) {
@@ -132,48 +134,59 @@ export function planProvision(options) {
     }
   }
 
-  // 2) Details toggle on Home listing managed top-level children (not a sources page).
-  const sourcesKey = refs.iaGraph.sourcesToggle.key;
+  // 2) Optional details toggle on Home (legacy). Slim Notion IA uses catalogs-on-home
+  // with flat top-level catalog pages and no sourcesToggle.
   const homeKey =
     refs.iaGraph.objects.find((o) => o.role === 'home')?.key ?? 'pages.home';
   const sourcesChildren = refs.iaGraph.objects.filter(
     (o) => o.parent === homeKey && o.kind === 'page',
   );
-  const sourcesStrategy = refs.iaGraph.sourcesStrategy ?? 'details-toggle-on-home';
-  const sourcesTitle = refs.iaGraph.sourcesToggle.title ?? '데이터 원본';
-  const sourcesToggleMarkdown = [
-    `<details>`,
-    `<summary>${sourcesTitle}</summary>`,
-    ...sourcesChildren.map((o) => `\t<page url="{{${o.key}}}">${o.title}</page>`),
-    `</details>`,
-  ].join('\n');
-  operations.push({
-    id: 'sources:root-index',
-    key: sourcesKey,
-    op: 'write_root_sources_index',
-    dependsOn: [
-      `ensure:${homeKey}`,
-      ...sourcesChildren.map((o) => `ensure:${o.key}`),
-    ],
-    expectedParentKey: homeKey,
-    title: sourcesTitle,
-    desiredDigest: digest(
-      stableStringify({ sourcesKey, strategy: sourcesStrategy, homeKey, children: sourcesChildren.map((o) => o.key) }),
-    ),
-    payload: {
-      strategy: sourcesStrategy,
-      sourcesKey,
-      homeKey,
+  const sourcesStrategy = refs.iaGraph.sourcesStrategy ?? 'catalogs-on-home';
+  const sourcesToggle = refs.iaGraph.sourcesToggle;
+  /** @type {string | null} */
+  let sourcesToggleMarkdown = null;
+  if (sourcesToggle?.key) {
+    const sourcesKey = sourcesToggle.key;
+    const sourcesTitle = sourcesToggle.title ?? '데이터 원본';
+    sourcesToggleMarkdown = [
+      `<details>`,
+      `<summary>${sourcesTitle}</summary>`,
+      ...sourcesChildren.map((o) => `\t<page url="{{${o.key}}}">${o.title}</page>`),
+      `</details>`,
+    ].join('\n');
+    operations.push({
+      id: 'sources:root-index',
+      key: sourcesKey,
+      op: 'write_root_sources_index',
+      dependsOn: [
+        `ensure:${homeKey}`,
+        ...sourcesChildren.map((o) => `ensure:${o.key}`),
+      ],
+      expectedParentKey: homeKey,
       title: sourcesTitle,
-      children: sourcesChildren.map((o) => o.key),
-      content: sourcesToggleMarkdown,
-    },
-    mcp: {
-      tool: 'notion-update-page',
-      notes:
-        'On pages.home, write a <details> 데이터 원본 toggle listing managed top-level pages. Never ensure_page a sources container.',
-    },
-  });
+      desiredDigest: digest(
+        stableStringify({
+          sourcesKey,
+          strategy: sourcesStrategy,
+          homeKey,
+          children: sourcesChildren.map((o) => o.key),
+        }),
+      ),
+      payload: {
+        strategy: sourcesStrategy,
+        sourcesKey,
+        homeKey,
+        title: sourcesTitle,
+        children: sourcesChildren.map((o) => o.key),
+        content: sourcesToggleMarkdown,
+      },
+      mcp: {
+        tool: 'notion-update-page',
+        notes:
+          'On pages.home, write a <details> 데이터 원본 toggle listing managed top-level pages. Never ensure_page a sources container.',
+      },
+    });
+  }
 
   // 3) Relations after both endpoints exist — walk each DB object, not schema name alone.
   for (const fromDb of refs.iaGraph.objects.filter((o) => o.kind === 'database')) {
@@ -206,65 +219,129 @@ export function planProvision(options) {
     }
   }
 
-  // 4) Write sidebar chrome for every managed page.
+  // 4) Write Home body. stacked-on-home = agent stack (no sidebar / no child pages).
   const placeholderMappings = Object.fromEntries(
     refs.iaGraph.objects
       .filter((o) => o.kind === 'page' || o.kind === 'database')
       .map((o) => [o.key, { url: `{{${o.key}}}` }]),
   );
 
-  for (const object of refs.iaGraph.objects.filter((o) => o.kind === 'page')) {
-    const childBlocks = [];
-    if (object.role === 'home') {
-      childBlocks.push(sourcesToggleMarkdown);
-    } else {
-      for (const child of refs.iaGraph.objects.filter((o) => o.parent === object.key)) {
-        if (child.kind === 'page') {
-          childBlocks.push(`<page url="{{${child.key}}}">${child.title}</page>`);
-        } else if (child.kind === 'database') {
-          childBlocks.push(
-            `<database url="{{${child.key}}}" inline="true">${child.title}</database>`,
+  if (sourcesStrategy === 'stacked-on-home') {
+    const homeObject =
+      refs.iaGraph.objects.find((o) => o.role === 'home') ??
+      refs.iaGraph.objects.find((o) => o.key === homeKey);
+    const homeStack = refs.iaGraph.homeStack;
+    if (!homeStack?.sections?.length) {
+      throw new Error(
+        'stacked-on-home requires notion-ia-graph.json homeStack.sections (도메인/기획/개발)',
+      );
+    }
+    const objectsByKey = Object.fromEntries(
+      refs.iaGraph.objects.map((o) => [o.key, o]),
+    );
+    const sections = homeStack.sections.map((section) => ({
+      id: section.id,
+      title: section.title,
+      databases: (section.databases ?? []).map((key) => {
+        const object = objectsByKey[key];
+        if (!object || object.kind !== 'database') {
+          throw new Error(
+            `homeStack section "${section.title}" references missing database ${key}`,
           );
         }
-      }
-    }
-
-    const content = renderSidebarPageContent({
-      activeKey: object.key,
-      mappings: placeholderMappings,
-      nav: refs.iaGraph.nav,
-      bodyMarkdown: defaultPageBody(object.key, object.title),
-      childBlocks,
+        return {
+          key,
+          title: object.title,
+          url: placeholderMappings[key]?.url ?? `{{${key}}}`,
+        };
+      }),
+    }));
+    const databaseKeys = sections.flatMap((s) => s.databases.map((d) => d.key));
+    const content = renderStackedHomeContent({
+      bodyMarkdown: defaultPageBody(homeKey, homeObject?.title ?? 'Home'),
+      sections,
     });
-
     const payload = {
-      key: object.key,
-      template: 'shared-sidebar',
-      activeSection: resolveActiveSection(object.key, refs.iaGraph.nav),
+      key: homeKey,
+      template: 'stacked-on-home',
       content,
       preserveChildren: true,
     };
     operations.push({
-      id: `body:${object.key}`,
-      key: object.key,
+      id: `body:${homeKey}`,
+      key: homeKey,
       op: 'write_page_body',
       dependsOn: [
-        `ensure:${object.key}`,
-        ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`),
-        ...(object.role === 'home' ? ['sources:root-index'] : []),
+        `ensure:${homeKey}`,
+        ...databaseKeys.map((key) => `ensure:${key}`),
+        ...databaseKeys.map((key) => `inline:${key}`),
       ],
-      expectedParentKey: object.parent,
-      desiredDigest: digest(stableStringify({ key: object.key, content })),
+      expectedParentKey: 'root',
+      desiredDigest: digest(stableStringify({ key: homeKey, content })),
       payload,
       mcp: {
         tool: 'notion-update-page',
         command: 'replace_content',
         notes:
-          object.role === 'home'
-            ? 'Home is the supplied root. Include <details> 데이터 원본 with top-level children. Preserve child page/database blocks.'
-            : 'Required for every pages.* key. Preserve child <page>/<database> blocks. Substitute {{pages.*}}/{{dbs.*}} from state mappings before write.',
+          'Home is the only managed page. Section headers only (도메인/기획/개발) + inline DBs. No per-catalog headings, no sidebar, no child pages. Substitute {{dbs.*}} from mappings before write.',
       },
     });
+  } else {
+    for (const object of refs.iaGraph.objects.filter((o) => o.kind === 'page')) {
+      const childBlocks = [];
+      if (object.role === 'home' && sourcesToggleMarkdown) {
+        childBlocks.push(sourcesToggleMarkdown);
+      } else {
+        for (const child of refs.iaGraph.objects.filter((o) => o.parent === object.key)) {
+          if (child.kind === 'page') {
+            childBlocks.push(`<page url="{{${child.key}}}">${child.title}</page>`);
+          } else if (child.kind === 'database') {
+            childBlocks.push(
+              `<database url="{{${child.key}}}" inline="true">${child.title}</database>`,
+            );
+          }
+        }
+      }
+
+      const content = renderSidebarPageContent({
+        activeKey: object.key,
+        mappings: placeholderMappings,
+        nav: refs.iaGraph.nav,
+        bodyMarkdown: defaultPageBody(object.key, object.title),
+        childBlocks,
+      });
+
+      const payload = {
+        key: object.key,
+        template: 'shared-sidebar',
+        activeSection: resolveActiveSection(object.key, refs.iaGraph.nav),
+        content,
+        preserveChildren: true,
+      };
+      operations.push({
+        id: `body:${object.key}`,
+        key: object.key,
+        op: 'write_page_body',
+        dependsOn: [
+          `ensure:${object.key}`,
+          ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`),
+          ...(object.role === 'home' && sourcesToggleMarkdown ? ['sources:root-index'] : []),
+        ],
+        expectedParentKey: object.parent,
+        desiredDigest: digest(stableStringify({ key: object.key, content })),
+        payload,
+        mcp: {
+          tool: 'notion-update-page',
+          command: 'replace_content',
+          notes:
+            object.role === 'home'
+              ? sourcesToggleMarkdown
+                ? 'Home is the supplied root. Include <details> 데이터 원본 with top-level children. Preserve child page/database blocks.'
+                : 'Home is the supplied root. Flat catalog nav only (ADR-008). Preserve child page/database blocks.'
+              : 'Required for every pages.* key. Preserve child <page>/<database> blocks. Substitute {{pages.*}}/{{dbs.*}} from state mappings before write.',
+        },
+      });
+    }
   }
 
   const pending = new Set(options.pendingOperationIds ?? []);
@@ -301,16 +378,27 @@ export function planProvision(options) {
   const chromeValidation = validateManifestSidebarChrome({
     operations: planned,
     nav: refs.iaGraph.nav,
+    sourcesStrategy,
+    homeStack: refs.iaGraph.homeStack,
+    catalogTitles: refs.iaGraph.objects
+      .filter((o) => o.kind === 'database')
+      .map((o) => o.title)
+      .filter(Boolean),
   });
 
   const manifest = {
-    schemaVersion: '1.3',
+    schemaVersion: '1.4',
     provider: 'notion',
     root,
-    sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'details-toggle-on-home',
-    chrome: refs.iaGraph.chrome ?? { requiredOn: 'all-pages' },
+    sourcesStrategy,
+    homeStack: refs.iaGraph.homeStack ?? null,
+    chrome:
+      refs.iaGraph.chrome ??
+      (sourcesStrategy === 'stacked-on-home'
+        ? { requiredOn: 'none' }
+        : { requiredOn: 'all-pages' }),
     references: {
-      iaGraph: 'references/handbook-ia-graph.json',
+      iaGraph: 'references/notion-ia-graph.json',
       catalogSchemas: 'references/notion-catalog-schemas.json',
       sidebar: 'references/notion-sidebar.md',
       pageTemplates: 'references/notion-page-templates.md',
@@ -434,10 +522,22 @@ export function validateSnapshot(options) {
     }
   }
 
-  // Always enforce planned body chrome structure (columns, yellow group, nested list).
+  // Enforce body chrome for the active Notion strategy (stacked vs legacy sidebar).
+  const catalogTitles = Object.values(snapshot.objects ?? {})
+    .filter((o) => o?.type === 'database' && o?.title)
+    .map((o) => o.title);
   const chromeValidation = validateManifestSidebarChrome({
     operations: manifest.operations,
     nav: manifest.nav,
+    sourcesStrategy: manifest.sourcesStrategy,
+    homeStack: manifest.homeStack,
+    catalogTitles:
+      catalogTitles.length > 0
+        ? catalogTitles
+        : (manifest.operations ?? [])
+            .filter((op) => op.op === 'ensure_database')
+            .map((op) => op.payload?.title)
+            .filter(Boolean),
   });
   problems.push(...chromeValidation.problems);
 
@@ -535,11 +635,45 @@ export function capabilityBlockers(flags = {}) {
 }
 
 /**
+ * Map a catalog schema property to Notion MCP CREATE TABLE / ALTER COLUMN DDL.
+ * @param {{ name: string, type: string, prefix?: string, options?: string[] }} property
+ */
+export function propertyToNotionDdl(property) {
+  const name = `"${String(property.name).replaceAll('"', '')}"`;
+  switch (property.type) {
+    case 'title':
+      return `${name} TITLE`;
+    case 'rich_text':
+      return `${name} RICH_TEXT`;
+    case 'unique_id':
+      return property.prefix
+        ? `${name} UNIQUE_ID PREFIX '${String(property.prefix).replaceAll("'", '')}'`
+        : `${name} UNIQUE_ID`;
+    case 'select': {
+      const opts = (property.options ?? [])
+        .map((o) => `'${String(o).replaceAll("'", '')}'`)
+        .join(', ');
+      return opts ? `${name} SELECT(${opts})` : `${name} SELECT()`;
+    }
+    case 'multi_select': {
+      const opts = (property.options ?? [])
+        .map((o) => `'${String(o).replaceAll("'", '')}'`)
+        .join(', ');
+      return opts ? `${name} MULTI_SELECT(${opts})` : `${name} MULTI_SELECT()`;
+    }
+    case 'relation':
+      return `${name} RELATION('{{${property.relationSchema ?? 'related'}}}')`;
+    default:
+      throw new Error(`unsupported Notion property type: ${property.type}`);
+  }
+}
+
+/**
  * @param {{
  *   skillRoot: string,
  *   kind: string,
  *   title: string,
- *   id: string,
+ *   id?: string,
  *   mappings?: Record<string, { id: string, type: string }>,
  * }} options
  */
@@ -552,17 +686,25 @@ export function planCreateDocument(options) {
     throw new Error(`unsupported Notion document kind: ${options.kind}`);
   }
   const mapped = options.mappings?.[dbKey];
+  // OMD ID is Notion UNIQUE_ID — auto-assigned; do not send it on create.
+  const rowKey =
+    typeof options.id === 'string' && options.id.trim()
+      ? options.id.trim()
+      : slugifyTitle(options.title);
   const payload = {
     databaseKey: dbKey,
     title: options.title,
-    omdId: options.id,
+    properties: {
+      Title: options.title,
+    },
+    autoIdProperty: 'OMD ID',
   };
   return {
     ok: true,
     provider: 'notion',
     requiresMappedDatabase: !mapped,
     operation: {
-      id: `row:${dbKey}:${options.id}`,
+      id: `row:${dbKey}:${rowKey}`,
       key: dbKey,
       op: 'ensure_row',
       dependsOn: mapped ? [] : [`ensure:${dbKey}`],
@@ -570,13 +712,28 @@ export function planCreateDocument(options) {
       desiredDigest: digest(stableStringify(payload)),
       payload,
       mappedDatabaseId: mapped?.id ?? null,
-      mcp: { tool: 'notion-create-pages', parentFrom: 'data_source' },
+      mcp: {
+        tool: 'notion-create-pages',
+        parentFrom: 'data_source',
+        notes:
+          'Create the row with Title (and optional Summary/Status). Do not set OMD ID — UNIQUE_ID is read-only and auto-generated.',
+      },
     },
   };
 }
 
+function slugifyTitle(title) {
+  return String(title)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'row';
+}
+
 export {
   renderSidebarPageContent,
+  renderStackedHomeContent,
   defaultPageBody,
   resolveActiveSection,
   validateSidebarChrome,

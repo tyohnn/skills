@@ -2,45 +2,52 @@
 
 Path: `skills/oh-my-doc/references/` (name **`references`**, not `ref`).
 
-Machine-readable companion: `handbook-ia-graph.json` (`schemaVersion` 2.0;
-`notion-ia-graph.json` mirrors it for compatibility).
+Machine-readable companion: `notion-ia-graph.json` (`schemaVersion` 2.0).
+Local Fumadocs still uses `handbook-ia-graph.json` (full tree).
 
-Catalog destinations are **pages** that embed their database **inline**. The
-navigable object is the page; the database is not a top-level sidebar target.
+## Agent stack (`stacked-on-home`)
 
-## Sources parenting
-
-Default `sourcesStrategy` is **`details-toggle-on-home`**.
+Default Notion `sourcesStrategy` is **`stacked-on-home`**.
 
 - The user-supplied Notion root **is** Home (`pages.home`, role `home`).
-- **데이터 원본** is a `<details>` toggle on Home — not a child page.
-- Managed top-level pages parent under Home and are listed inside that toggle.
+- **All catalog databases** are children of Home and rendered **inline**,
+  stacked under section headers on that one page.
+- **Only** these `#` headings are allowed on Home, in order:
+  **도메인**, **기획**, **개발** (`homeStack.sections`).
+- **Forbidden:** per-catalog headings (`# Glossary`, `# PRDs`, …), catalog
+  child pages, Vision/Workflow pages, sidebar chrome.
+- Agents read/write catalog rows in the inline DBs on Home; the DB title is
+  the catalog label.
 
 ```text
 Home (user-supplied notion-root = pages.home)
-├── columns (sidebar chrome + Home body)
-└── <details> 데이터 원본
-    ├── Vision
-    ├── Start here
-    ├── Workflow
-    │   ├── Workflow Planning
-    │   └── Development
-    ├── Domain
-    │   ├── Glossary (page → inline DB)
-    │   ├── Models (page → inline DB)
-    │   └── Policies (page → inline DB)
-    ├── Planning
-    │   ├── PRDs (page → inline DB)
-    │   └── Stories (page → inline DB)
-    ├── Spec
-    │   ├── Data model (page → inline DB)
-    │   └── System model (page → inline DB)
-    ├── Plans (page → inline DB)
-    └── ADRs (page → inline DB)
+├── intro (short plain body, no # heading required)
+├── # 도메인
+│   ├── Glossary (inline DB)
+│   ├── Models (inline DB)
+│   └── Policies (inline DB)
+├── # 기획
+│   ├── PRDs (inline DB)
+│   └── Stories (inline DB)
+└── # 개발
+    ├── Data model (inline DB)
+    ├── System model (inline DB)
+    ├── Plans (inline DB)
+    └── ADRs (inline DB)
 ```
 
-Do not emit `ensure_page` for a sources container titled 데이터 원본.
+Do not emit `ensure_page` for catalog indexes. Do not emit sidebar `<columns>`
+chrome for Notion SSOT. Provision/check hard-fail if Home drifts from
+`homeStack`.
 
-Sidebar navigation uses page mentions only — never bare URLs as the primary nav.
-Every managed content page except Home still receives the shared sidebar chrome;
-Home receives chrome plus the sources details toggle.
+## Catalog write destinations
+
+| Kind | Notion destination |
+|---|---|
+| PRD | Row in `dbs.prds` on Home |
+| Story | Row in `dbs.stories` on Home |
+| Plan | Row in `dbs.plans` on Home |
+| ADR | Row in `dbs.adrs` on Home |
+| Spec | Row in `dbs.data-model` / `dbs.system-model` on Home |
+
+Machine map: `notion-ia-graph.json` → `kindToDatabase`.

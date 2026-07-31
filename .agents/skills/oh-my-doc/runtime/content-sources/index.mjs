@@ -13,15 +13,6 @@ import {
   renderSidebarPageContent,
   defaultPageBody,
 } from './notion.mjs';
-import {
-  capabilityBlockers as supabaseCapabilityBlockers,
-  planCreateDocument as planSupabaseCreateDocument,
-  planProvision as planSupabaseProvision,
-  recordResult as recordSupabaseResult,
-  validateSnapshot as validateSupabaseSnapshot,
-  containsForbiddenSecrets,
-  SUPABASE_SCHEMA_VERSION,
-} from './supabase.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
 import { loadNotionReferences } from './load-references.mjs';
 import { extractChildBlocks } from './sidebar.mjs';
@@ -37,15 +28,6 @@ export {
   renderSidebarPageContent,
   defaultPageBody,
 };
-export {
-  supabaseCapabilityBlockers,
-  planSupabaseCreateDocument,
-  planSupabaseProvision,
-  recordSupabaseResult,
-  validateSupabaseSnapshot,
-  containsForbiddenSecrets,
-  SUPABASE_SCHEMA_VERSION,
-};
 
 /**
  * Resolve SSOT from flags and/or existing project contract.
@@ -53,7 +35,6 @@ export {
  *   cwd: string,
  *   ssot?: string,
  *   notionRoot?: string,
- *   projectRef?: string,
  * }} options
  */
 export function resolveContentSource(options) {
@@ -61,31 +42,19 @@ export function resolveContentSource(options) {
   const fromContract = existing ? normalizeContentSource(existing) : null;
   const ssot = options.ssot ?? fromContract?.ssot ?? 'local';
 
-  if (ssot !== 'local' && ssot !== 'notion' && ssot !== 'supabase') {
+  if (ssot === 'supabase') {
+    throw Object.assign(
+      new Error('contentSource.ssot "supabase" is removed (ADR-008). Use local or notion.'),
+      { code: 'supabase_removed' },
+    );
+  }
+
+  if (ssot !== 'local' && ssot !== 'notion') {
     throw new Error(`unsupported contentSource.ssot: ${ssot}`);
   }
 
   if (ssot === 'local') {
-    return { ssot: 'local', notion: null, supabase: null, contract: existing };
-  }
-
-  if (ssot === 'supabase') {
-    const projectRef =
-      options.projectRef ?? fromContract?.supabase?.projectRef ?? null;
-    /** @type {{ projectRef: string | null, schemaVersion: string, handbookId?: string }} */
-    const supabase = {
-      projectRef,
-      schemaVersion: fromContract?.supabase?.schemaVersion ?? SUPABASE_SCHEMA_VERSION,
-    };
-    if (fromContract?.supabase?.handbookId) {
-      supabase.handbookId = fromContract.supabase.handbookId;
-    }
-    return {
-      ssot: 'supabase',
-      notion: null,
-      supabase,
-      contract: existing,
-    };
+    return { ssot: 'local', notion: null, contract: existing };
   }
 
   const rootInput =
@@ -105,13 +74,12 @@ export function resolveContentSource(options) {
       ...notion,
       schemaVersion: fromContract?.notion?.schemaVersion ?? '1.0',
     },
-    supabase: null,
     contract: existing,
   };
 }
 
 /**
- * @param {'local' | 'notion' | 'supabase'} ssot
+ * @param {'local' | 'notion'} ssot
  */
 export function getContentAdapter(ssot) {
   if (ssot === 'local') return createLocalAdapter();
@@ -123,16 +91,6 @@ export function getContentAdapter(ssot) {
       validateSnapshot: validateNotionSnapshot,
       recordResult: recordNotionResult,
       capabilityBlockers,
-    };
-  }
-  if (ssot === 'supabase') {
-    return {
-      ssot: 'supabase',
-      planProvision: planSupabaseProvision,
-      planCreateDocument: planSupabaseCreateDocument,
-      validateSnapshot: validateSupabaseSnapshot,
-      recordResult: recordSupabaseResult,
-      capabilityBlockers: supabaseCapabilityBlockers,
     };
   }
   throw new Error(`unsupported ssot: ${ssot}`);

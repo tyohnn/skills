@@ -1,15 +1,13 @@
 # Implementation workflow
 
-1. Confirm a plan already exists on the PR base with `stage: ready|active`.
-2. Reference it in the change description:
-   `Plan: <path-to-plan.mdx>`
-3. Keep edits inside the plan's `codeAreas` unless you first update and review
-   the plan.
-4. If scope or observable behavior changes, return to planning before more code.
-5. Run the plan's verification steps, then mark the plan `done`.
-6. Prefer CLI and project scripts (`omdocs check`, `pnpm check:docs-first`,
-   `pnpm test`, `pnpm typecheck`) over ad hoc checks.
+1. Ship code. Handbook catalogs are ordinary docs, not a merge prerequisite.
+2. Write or update PRD / story / SPEC / ADR / plan pages only when you want
+   durable notes in the SSOT.
+3. If scope or observable behavior changes in a way that should outlive chat,
+   update the matching handbook artifacts as you go.
+4. Run the project's verification steps (`pnpm test`, `pnpm typecheck`,
+   `omdocs check` / `omd.mjs check`, and any plan-local checks you wrote).
+5. Prefer CLI and project scripts over ad hoc checks.
 
-Docs-only edits under the docs content/templates trees (plus root `README.md` /
-`CHANGELOG.md`) do not require a prior plan. There is no general bypass for
-product, bugfix, or maintenance work.
+There is no `Plan:` trailer, ready-plan-on-base requirement, or
+`check:docs-first` gate.
