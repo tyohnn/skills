@@ -70,18 +70,17 @@ export function stableStringify(value) {
 /**
  * @param {unknown} project
  * @returns {{
- *   ssot: 'local' | 'notion' | 'supabase',
+ *   ssot: 'local' | 'notion',
  *   notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string },
- *   supabase: null | { projectRef: string, schemaVersion: string, handbookId?: string },
  * }}
  */
 export function normalizeContentSource(project) {
   const raw = project && typeof project === 'object' ? project.contentSource : null;
   if (!raw || typeof raw !== 'object' || !raw.ssot) {
-    return { ssot: 'local', notion: null, supabase: null };
+    return { ssot: 'local', notion: null };
   }
   if (raw.ssot === 'local') {
-    return { ssot: 'local', notion: null, supabase: null };
+    return { ssot: 'local', notion: null };
   }
   if (raw.ssot === 'notion') {
     const notion = raw.notion && typeof raw.notion === 'object' ? raw.notion : {};
@@ -92,49 +91,19 @@ export function normalizeContentSource(project) {
         rootPageUrl: String(notion.rootPageUrl ?? ''),
         schemaVersion: String(notion.schemaVersion ?? '1.0'),
       },
-      supabase: null,
     };
   }
   if (raw.ssot === 'supabase') {
-    const supabase = raw.supabase && typeof raw.supabase === 'object' ? raw.supabase : {};
-    /** @type {{ projectRef: string, schemaVersion: string, handbookId?: string }} */
-    const next = {
-      projectRef: String(supabase.projectRef ?? ''),
-      schemaVersion: String(supabase.schemaVersion ?? '1.0'),
-    };
-    if (supabase.handbookId) {
-      next.handbookId = String(supabase.handbookId);
-    }
-    return {
-      ssot: 'supabase',
-      notion: null,
-      supabase: next,
-    };
+    throw new Error('contentSource.ssot "supabase" is removed (ADR-008). Use local or notion.');
   }
   throw new Error(`unsupported contentSource.ssot: ${raw.ssot}`);
 }
 
 /**
- * Map contract handbookId → Postgres schema name (`omd_h_<sanitized>`).
- * Empty/missing handbookId ⇒ legacy `public` tables.
- *
- * @param {string | null | undefined} handbookId
- */
-export function handbookPgSchema(handbookId) {
-  if (!handbookId) return 'public';
-  const id = String(handbookId);
-  if (!/^[a-z][a-z0-9-]{1,62}$/.test(id)) {
-    throw new Error(`invalid handbookId: ${id}`);
-  }
-  return `omd_h_${id.replace(/-/g, '_')}`;
-}
-
-/**
- * @param {'local' | 'notion' | 'supabase'} [ssot]
+ * @param {'local' | 'notion'} [ssot]
  * @param {{ rootPageId: string, rootPageUrl: string, schemaVersion?: string } | null} [notion]
- * @param {{ projectRef: string, schemaVersion?: string, handbookId?: string } | null} [supabase]
  */
-export function createContentSource(ssot = 'local', notion = null, supabase = null) {
+export function createContentSource(ssot = 'local', notion = null) {
   if (ssot === 'local') {
     return { ssot: 'local' };
   }
@@ -152,21 +121,7 @@ export function createContentSource(ssot = 'local', notion = null, supabase = nu
     };
   }
   if (ssot === 'supabase') {
-    if (!supabase?.projectRef) {
-      throw new Error('supabase contentSource requires projectRef');
-    }
-    /** @type {{ projectRef: string, schemaVersion: string, handbookId?: string }} */
-    const next = {
-      projectRef: supabase.projectRef,
-      schemaVersion: supabase.schemaVersion ?? '1.0',
-    };
-    if (supabase.handbookId) {
-      next.handbookId = String(supabase.handbookId);
-    }
-    return {
-      ssot: 'supabase',
-      supabase: next,
-    };
+    throw new Error('contentSource.ssot "supabase" is removed (ADR-008). Use local or notion.');
   }
   throw new Error(`unsupported contentSource.ssot: ${ssot}`);
 }
@@ -178,9 +133,8 @@ export function createContentSource(ssot = 'local', notion = null, supabase = nu
  *   docsPath?: string,
  *   uiPath?: string,
  *   contentSource?: {
- *     ssot: 'local' | 'notion' | 'supabase',
+ *     ssot: 'local' | 'notion',
  *     notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string },
- *     supabase?: { projectRef: string, schemaVersion?: string },
  *   },
  * }} [options]
  */
@@ -189,7 +143,6 @@ export function createDefaultProject(root, options = {}) {
     ? createContentSource(
         options.contentSource.ssot,
         options.contentSource.ssot === 'notion' ? options.contentSource.notion ?? null : null,
-        options.contentSource.ssot === 'supabase' ? options.contentSource.supabase ?? null : null,
       )
     : createContentSource('local');
 

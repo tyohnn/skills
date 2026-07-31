@@ -6,5 +6,4 @@ export { planSetup } from './plan-setup.mjs';
 export { PROJECT_SKILL_ROOTS, agentsFor, skillInstallRoot, userSkillRoot, } from './skill-paths.mjs';
 export { doctorProject } from './doctor.mjs';
 export { collectPlanningDocuments, parseFrontmatter, validatePlanning, } from './planning.mjs';
-export { extractPlanPath, gateScriptExistsOnBase, isDocumentationOnlyPath, validateDocsFirst, } from './docs-first.mjs';
 export { planCreateDocument, slugifyTitle, } from './create-document.mjs';

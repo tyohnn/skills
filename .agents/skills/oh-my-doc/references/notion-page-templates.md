@@ -1,76 +1,33 @@
 # Notion page body templates
 
 Notion-flavored Markdown with placeholders. Substitute from state mappings
-after pages exist. Do not use Notion HTML export as input.
+after databases exist.
 
-Runtime builds final bodies with `renderSidebarPageContent` for every managed
-page.
+## Stacked Home (current)
 
-## Shared sidebar (active Spec example)
-
-```markdown
-<columns>
-	<column ratio="20">
-		<callout icon="📌" color="gray_bg">
-			- <mention-page url="{{pages.home}}"/>
-			- <mention-page url="{{pages.vision}}"/>
-			- <mention-page url="{{pages.starting}}"/>
-			<details>
-			<summary><mention-page url="{{pages.workflow}}"/></summary>
-				- <mention-page url="{{pages.workflow-planning}}"/>
-				- <mention-page url="{{pages.development}}"/>
-			</details>
-			<details>
-			<summary><mention-page url="{{pages.domain}}"/></summary>
-				- <mention-page url="{{pages.glossary}}"/>
-				- <mention-page url="{{pages.models}}"/>
-				- <mention-page url="{{pages.policies}}"/>
-			</details>
-			<details>
-			<summary><mention-page url="{{pages.planning}}"/></summary>
-				- <mention-page url="{{pages.prds}}"/>
-				- <mention-page url="{{pages.stories}}"/>
-			</details>
-			<details>
-			<summary><mention-page url="{{pages.spec}}"/> {color="yellow_bg"}</summary>
-				- <mention-page url="{{pages.data-model}}"/>
-				- <mention-page url="{{pages.system-model}}"/>
-			</details>
-			- <mention-page url="{{pages.plans}}"/>
-			- <mention-page url="{{pages.adrs}}"/>
-		</callout>
-	</column>
-	<column ratio="80">
-		# Spec
-		Observable contracts for data model and system model.
-		<page url="{{pages.data-model}}">Data model</page>
-		<page url="{{pages.system-model}}">System model</page>
-	</column>
-</columns>
-```
-
-All body copy and child `<page>` / `<database>` / sources blocks must live in the
-right column so the sidebar pushes content rightward. Do not place them after
-`</columns>`.
-
-Parents with children always use `<details>` so those children can be collapsed.
-When a nested child is current (for example Data model), that child bullet also
-gets `{color="yellow_bg"}` while the Spec summary stays yellow.
-## Catalog page (inline DB preserved)
+**Hard rule:** Home may use only these `#` headings, in this order:
+`도메인`, `기획`, `개발`. Do **not** emit per-catalog headings
+(`# Glossary`, `# PRDs`, …) — the database title is enough.
 
 ```markdown
-<columns>
-	...sidebar...
-	<column ratio="80">
-		# PRDs
-		...
-		<database url="{{dbs.prds}}" inline="true">PRDs</database>
-	</column>
-</columns>
-```
-## Root sources toggle
+Oh My Docs handbook (agent SSOT). Catalogs are stacked inline databases on this page — no child pages, no sidebar.
 
-Canonical strategy (`details-toggle-on-home`): the supplied Notion root **is**
-Home (`pages.home`). Write a `<details>` block titled **데이터 원본** on Home and
-parent managed top-level pages under Home so they appear inside that toggle.
-Do **not** create a child page titled 데이터 원본.
+# 도메인
+<database url="{{dbs.glossary}}" inline="true">Glossary</database>
+<database url="{{dbs.models}}" inline="true">Models</database>
+<database url="{{dbs.policies}}" inline="true">Policies</database>
+
+# 기획
+<database url="{{dbs.prds}}" inline="true">PRDs</database>
+<database url="{{dbs.stories}}" inline="true">Stories</database>
+
+# 개발
+<database url="{{dbs.data-model}}" inline="true">Data model</database>
+<database url="{{dbs.system-model}}" inline="true">System model</database>
+<database url="{{dbs.plans}}" inline="true">Plans</database>
+<database url="{{dbs.adrs}}" inline="true">ADRs</database>
+```
+
+Runtime builds this with `renderStackedHomeContent` from
+`notion-ia-graph.json` → `homeStack`. `validateStackedHomeContent` hard-fails
+on catalog headings, wrong section order, or sidebar chrome.

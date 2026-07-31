@@ -1,19 +1,16 @@
 {
   "contractVersion": "1.0",
-  "mode": "brownfield",
+  "mode": "greenfield",
   "contentSource": {
-    "ssot": "supabase",
-    "supabase": {
-      "projectRef": "vtuprmfqbwhryjoznjxg",
-      "schemaVersion": "1.1",
-      "handbookId": "skills"
+    "ssot": "notion",
+    "notion": {
+      "rootPageId": "3a9346da-c456-8024-802c-f881896d3bd3",
+      "rootPageUrl": "https://app.notion.com/p/paxhumana/tyohnn-skills-3a9346dac4568024802cf881896d3bd3",
+      "schemaVersion": "1.0"
     }
   },
   "paths": {
-    "docs": "docs",
-    "ui": "packages/docs-ui",
-    "content": "docs/content/docs",
-    "templates": "docs/templates"
+    "notionRoot": "https://app.notion.com/p/paxhumana/tyohnn-skills-3a9346dac4568024802cf881896d3bd3"
   },
   "informationArchitecture": {
     "schemaVersion": "2.0",
@@ -265,156 +262,15 @@
     }
   },
   "ui": {
-    "base": "fumadocs",
-    "distribution": "skill-template",
-    "shellDependencies": [
-      "fumadocs-ui",
-      "fumadocs-core",
-      "fumadocs-mdx"
-    ],
-    "vocabulary": [
-      {
-        "name": "Card",
-        "surface": "fumadocs-mdx",
-        "export": "Card",
-        "source": "fumadocs-ui",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "Cards",
-        "surface": "fumadocs-mdx",
-        "export": "Cards",
-        "source": "fumadocs-ui",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "File",
-        "surface": "fumadocs-mdx",
-        "export": "File",
-        "source": "fumadocs-ui",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "Files",
-        "surface": "fumadocs-mdx",
-        "export": "Files",
-        "source": "fumadocs-ui",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "Folder",
-        "surface": "fumadocs-mdx",
-        "export": "Folder",
-        "source": "fumadocs-ui",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "DocKind",
-        "surface": "planning-badge",
-        "export": "DocKind",
-        "contractVersion": "1.0",
-        "enums": {
-          "kind": [
-            "PRD",
-            "US",
-            "PLAN",
-            "SPEC",
-            "ADR"
-          ]
-        }
-      },
-      {
-        "name": "DocStatus",
-        "surface": "planning-badge",
-        "export": "DocStatus",
-        "contractVersion": "1.0",
-        "enums": {
-          "status": [
-            "draft",
-            "accepted",
-            "ready",
-            "active",
-            "done",
-            "superseded"
-          ]
-        }
-      },
-      {
-        "name": "AdrStatus",
-        "surface": "planning-badge",
-        "export": "AdrStatus",
-        "contractVersion": "1.0",
-        "enums": {
-          "status": [
-            "accepted",
-            "locked",
-            "superseded"
-          ]
-        }
-      },
-      {
-        "name": "Decision",
-        "surface": "decision-block",
-        "export": "Decision",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "SpecVersion",
-        "surface": "spec-block",
-        "export": "SpecVersion",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "Canvas",
-        "surface": "visual-block",
-        "export": "Canvas",
-        "contractVersion": "1.0",
-        "enums": {
-          "nodeKind": [
-            "input",
-            "process",
-            "output",
-            "external"
-          ]
-        }
-      },
-      {
-        "name": "CanvasLegend",
-        "surface": "visual-block",
-        "export": "CanvasLegend",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "DocsInlineToc",
-        "surface": "navigation-shell",
-        "export": "DocsInlineToc",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "DocsSidebarFolder",
-        "surface": "navigation-shell",
-        "export": "DocsSidebarFolder",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "indexOnlyPageTree",
-        "surface": "catalog-helper",
-        "export": "indexOnlyPageTree",
-        "contractVersion": "1.0"
-      },
-      {
-        "name": "createCatalogNavigation",
-        "surface": "catalog-helper",
-        "export": "createCatalogNavigation",
-        "contractVersion": "1.0"
-      }
-    ]
+    "base": "none",
+    "distribution": "none",
+    "shellDependencies": [],
+    "vocabulary": []
   },
   "ownership": {
     "omdGenerated": [
       ".omd/project.json",
-      ".omd/schemas/",
-      "docs/content/docs/meta.json"
+      ".omd/schemas/"
     ],
     "omdManaged": [
       "AGENTS.md",

@@ -21,13 +21,7 @@ import {
   resolveContentSource,
 } from '../runtime/content-sources/index.mjs';
 import { adoptNotionProject } from '../runtime/content-sources/adopt-notion.mjs';
-import { adoptSupabaseProject } from '../runtime/content-sources/adopt-supabase.mjs';
 import { planCreateDocument as planNotionCreateDocument } from '../runtime/content-sources/notion.mjs';
-import {
-  planCreateDocument as planSupabaseCreateDocument,
-  containsForbiddenSecrets,
-  validateSnapshot as validateSupabaseSnapshot,
-} from '../runtime/content-sources/supabase.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SKILL_ROOT = resolve(__dirname, '..');
@@ -87,6 +81,19 @@ function flagSsot(flags) {
 }
 
 /**
+ * Reject removed SSOT values early with a clear error.
+ * @param {string | undefined} ssot
+ */
+function assertSupportedSsotFlag(ssot) {
+  if (ssot === 'supabase') {
+    throw Object.assign(
+      new Error('contentSource.ssot "supabase" is removed (ADR-008). Use local or notion.'),
+      { code: 'supabase_removed' },
+    );
+  }
+}
+
+/**
  * @param {readonly string[]} argv
  */
 export async function main(argv = process.argv.slice(2)) {
@@ -119,6 +126,8 @@ export async function main(argv = process.argv.slice(2)) {
   const yes = flags.yes === true;
 
   try {
+    assertSupportedSsotFlag(flagSsot(flags));
+
     switch (action) {
       case 'inspect': {
         const report = inspectProject({
@@ -154,9 +163,9 @@ export async function main(argv = process.argv.slice(2)) {
             ok: false,
             code: 'needsSsot',
             needsSsot: true,
-            options: ['local', 'notion', 'supabase'],
+            options: ['local', 'notion'],
             message:
-              'Greenfield adopt requires --ssot local|notion|supabase. Ask the user to choose the handbook SSOT first.',
+              'Greenfield adopt requires --ssot local|notion. Ask the user to choose the handbook SSOT first.',
           };
           if (json) printJson(payload);
           else {
@@ -164,7 +173,6 @@ export async function main(argv = process.argv.slice(2)) {
             console.error('Examples:');
             console.error('  adopt --ssot local --yes');
             console.error('  adopt --ssot notion --notion-root <url-or-id> --yes');
-            console.error('  adopt --ssot supabase --project-ref <ref> --yes');
           }
           process.exitCode = 1;
           return;
@@ -173,54 +181,7 @@ export async function main(argv = process.argv.slice(2)) {
           cwd: target,
           ssot: ssotFlag,
           notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
-          projectRef: typeof flags['project-ref'] === 'string' ? flags['project-ref'] : undefined,
         });
-
-        if (source.ssot === 'supabase') {
-          const result = adoptSupabaseProject({
-            cwd: target,
-            skillRoot: SKILL_ROOT,
-            schemasDir: SCHEMAS_DIR,
-            templateRoot: TEMPLATE_ROOT,
-            dryRun,
-            force,
-            projectRef: source.supabase?.projectRef ?? undefined,
-            authenticated: flags.authenticated === true ? true : flags.authenticated === false ? false : undefined,
-            projectAccessible:
-              flags['project-accessible'] === true
-                ? true
-                : flags['project-accessible'] === false
-                  ? false
-                  : undefined,
-            cliOrMcpAvailable:
-              flags['cli-or-mcp-available'] === true
-                ? true
-                : flags['cli-or-mcp-available'] === false
-                  ? false
-                  : undefined,
-            ...(typeof flags['ui-path'] === 'string' ? { uiPath: flags['ui-path'] } : {}),
-            ...(typeof flags['package-manager'] === 'string'
-              ? { packageManager: flags['package-manager'] }
-              : {}),
-          });
-          if (!dryRun && result.blockers.length > 0 && !force) {
-            if (json) printJson(result);
-            else {
-              console.error('Supabase adopt blocked:');
-              for (const b of result.blockers) console.error(`- ${b.code}: ${b.message}`);
-            }
-            process.exitCode = 1;
-            return;
-          }
-          if (json) printJson(result);
-          else {
-            console.log(`adopt supabase${dryRun ? ' (dry-run)' : ''}`);
-            console.log(`operations: ${result.manifest.operations.length}`);
-            console.log(`projectRef: ${result.contentSource.supabase.projectRef}`);
-            if (result.next) console.log(result.next);
-          }
-          return;
-        }
 
         if (source.ssot === 'notion') {
           const result = adoptNotionProject({
@@ -294,43 +255,22 @@ export async function main(argv = process.argv.slice(2)) {
           cwd,
           ssot: flagSsot(flags),
           notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
-          projectRef: typeof flags['project-ref'] === 'string' ? flags['project-ref'] : undefined,
         });
-        if (source.ssot === 'supabase') {
-          const id =
-            typeof flags.id === 'string'
-              ? flags.id
-              : `${kind}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
-          const planned = planSupabaseCreateDocument({
-            skillRoot: SKILL_ROOT,
-            kind,
-            title,
-            id,
-          });
-          if (json) printJson(planned);
-          else {
-            console.log(`Supabase new ${kind} → manifest ${planned.operation.id}`);
-            console.log('Execute upsert_document via Supabase CLI/MCP; local MDX is not authoritative.');
-          }
-          return;
-        }
         if (source.ssot === 'notion') {
           const state = readState(cwd);
           const mappings = state?.provider?.notion?.mappings ?? {};
-          const id =
-            typeof flags.id === 'string'
-              ? flags.id
-              : `${kind}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+          // Notion OMD ID is UNIQUE_ID (auto). --id is only a local op key hint.
           const planned = planNotionCreateDocument({
             skillRoot: SKILL_ROOT,
             kind,
             title,
-            id,
+            ...(typeof flags.id === 'string' ? { id: flags.id } : {}),
             mappings,
           });
           if (json) printJson(planned);
           else {
             console.log(`Notion new ${kind} → manifest ${planned.operation.id}`);
+            console.log('OMD ID is Notion UNIQUE_ID — do not set it when creating the row.');
             if (planned.requiresMappedDatabase) {
               console.log('Database not mapped yet — run adopt/sync provision first.');
             }
@@ -364,46 +304,6 @@ export async function main(argv = process.argv.slice(2)) {
       }
       case 'check': {
         const source = resolveContentSourceSafe(cwd, flags);
-        if (source.ssot === 'supabase') {
-          const problems = [];
-          const contract = readProject(cwd);
-          const state = readState(cwd);
-          if (!contract) problems.push('.omd/project.json is missing — run adopt first');
-          else {
-            const normalized = normalizeContentSource(contract);
-            if (normalized.ssot !== 'supabase') {
-              problems.push('contentSource.ssot is not supabase');
-            }
-            if (!normalized.supabase?.projectRef) {
-              problems.push('contentSource.supabase.projectRef is required');
-            }
-            if (containsForbiddenSecrets(contract) || (state && containsForbiddenSecrets(state))) {
-              problems.push('secret_in_contract: credentials must not appear in project/state JSON');
-            }
-            if (state && digest(stableStringify(contract)) !== state.projectDigest) {
-              problems.push('.omd/state.json projectDigest does not match project.json');
-            }
-            const pending = state?.provider?.supabase?.pendingOperationIds ?? [];
-            const validated = validateSupabaseSnapshot({
-              projectRef: normalized.supabase?.projectRef,
-              schemaVersion: state?.provider?.supabase?.schemaVersion ?? normalized.supabase?.schemaVersion,
-              expectedSchemaVersion: normalized.supabase?.schemaVersion,
-              pendingOperationIds: pending,
-              hasSecretInContract: containsForbiddenSecrets(contract),
-            });
-            problems.push(...validated.problems);
-          }
-          const ok = problems.length === 0;
-          if (json) printJson({ ok, problems, contentSource: source });
-          else if (!ok) {
-            console.error(`check found ${problems.length} problem(s):`);
-            for (const problem of problems) console.error(`- ${problem}`);
-          } else {
-            console.log('Supabase content source contract looks valid.');
-          }
-          if (!ok) process.exitCode = 1;
-          return;
-        }
         if (source.ssot === 'notion') {
           const problems = [];
           const contract = readProject(cwd);
@@ -518,26 +418,7 @@ export async function main(argv = process.argv.slice(2)) {
           cwd,
           ssot: flagSsot(flags),
           notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
-          projectRef: typeof flags['project-ref'] === 'string' ? flags['project-ref'] : undefined,
         });
-        if (source.ssot === 'supabase') {
-          const adapter = getContentAdapter('supabase');
-          const state = readState(cwd);
-          const planned = adapter.planProvision({
-            skillRoot: SKILL_ROOT,
-            projectRef: source.supabase?.projectRef ?? undefined,
-            schemaVersion: source.supabase?.schemaVersion,
-            pendingOperationIds: state?.provider?.supabase?.pendingOperationIds ?? [],
-          });
-          if (json) printJson({ ok: true, dryRun, contentSource: source, ...planned });
-          else {
-            console.log(
-              `sync supabase${dryRun ? ' (dry-run)' : ''}: ${planned.manifest.operations.length} operation(s)`,
-            );
-            console.log('Execute pending SQL/seed operations; runtime does not call Supabase with hidden credentials.');
-          }
-          return;
-        }
         if (source.ssot === 'notion') {
           const adapter = getContentAdapter('notion');
           const state = readState(cwd);
@@ -590,10 +471,9 @@ function resolveContentSourceSafe(cwd, flags) {
       cwd,
       ssot: flagSsot(flags),
       notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
-      projectRef: typeof flags['project-ref'] === 'string' ? flags['project-ref'] : undefined,
     });
   } catch {
-    return { ssot: 'local', notion: null, supabase: null, contract: readProject(cwd) };
+    return { ssot: 'local', notion: null, contract: readProject(cwd) };
   }
 }
 
@@ -612,12 +492,12 @@ Actions:
 
 Common flags:
   --json --dry-run --yes --force
-  --ssot local|notion|supabase --notion-root <url-or-id> --project-ref <ref>
+  --ssot local|notion --notion-root <url-or-id>
   --ui-path <path> --docs-path <path> --title <title> --id <id>
 
 Defaults:
   --ssot          required for greenfield adopt (no silent local default)
-  --ui-path       packages/docs-ui (local/supabase SSOT)
+  --ui-path       packages/docs-ui (local SSOT)
 `);
 }
 

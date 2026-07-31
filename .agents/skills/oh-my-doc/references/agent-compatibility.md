@@ -39,7 +39,9 @@ node <skill>/scripts/omd.mjs adopt --ssot notion --notion-root <url-or-id> --dry
 node <skill>/scripts/omd.mjs check --json
 ```
 
-Before the first adopt, ask the user to choose SSOT (`local` docs app vs
-`notion` | `supabase`). Greenfield adopt without `--ssot` fails with `needsSsot`.
+Before the first adopt, ask the user to choose SSOT (`local` or `notion`).
+Greenfield adopt without `--ssot` fails with `needsSsot`. Options are only
+`local` | `notion` — `supabase` is removed (ADR-008).
 
-Do not tell users to run a public npm CLI.
+Do not tell users to run a public npm CLI. Prefer running `omd.mjs` yourself and
+summarizing results in chat.

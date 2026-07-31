@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { adoptProject } from '../runtime/adopt.mjs';
-import { normalizeContentSource } from '../runtime/omd-contract.mjs';
+import { createContentSource, normalizeContentSource } from '../runtime/omd-contract.mjs';
 import { parseNotionRoot } from '../runtime/content-sources/notion-root.mjs';
 import {
   planProvision,
@@ -15,7 +15,6 @@ import {
   validateSnapshot,
   validateMapping,
   capabilityBlockers,
-  renderSidebarPageContent,
 } from '../runtime/content-sources/notion.mjs';
 import { adoptNotionProject } from '../runtime/content-sources/adopt-notion.mjs';
 import { loadNotionReferences } from '../runtime/content-sources/load-references.mjs';
@@ -25,29 +24,34 @@ const templateRoot = join(skillRoot, 'templates/default');
 const schemasDir = join(skillRoot, 'schemas');
 const dogfoodRoot = '3a7346da-c456-800a-85f4-cae724925f98';
 
-test('references Notion templates load details-toggle-on-home IA', () => {
+test('references Notion templates load stacked-on-home IA', () => {
   const refs = loadNotionReferences(skillRoot);
   assert.equal(refs.iaGraph.schemaVersion, '2.0');
-  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.domain'));
-  assert.ok(refs.iaGraph.kindToDatabase.plan === 'dbs.plans');
-  assert.deepEqual(refs.iaGraph.nav.nested['pages.planning'], ['pages.prds', 'pages.stories']);
-  assert.ok(
-    (refs.iaGraph.objects.find((o) => o.key === 'pages.plans')?.forbiddenParents ?? []).includes(
-      'pages.planning',
-    ),
-  );
-  assert.equal(refs.iaGraph.sourcesStrategy, 'details-toggle-on-home');
-  assert.equal(refs.iaGraph.sourcesToggle.kind, 'details');
-  assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'toggles.sources'));
+  assert.equal(refs.iaGraph.sourcesStrategy, 'stacked-on-home');
+  assert.equal(refs.iaGraph.sourcesToggle, undefined);
+  assert.deepEqual(refs.iaGraph.nav.topLevel, ['pages.home']);
+  assert.deepEqual(refs.iaGraph.nav.nested, {});
+  assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'pages.vision'));
+  assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'pages.glossary'));
+  assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'pages.prds'));
   assert.ok(
     refs.iaGraph.objects.some(
       (o) => o.key === 'pages.home' && o.role === 'home' && o.suppliedAsRoot === true,
     ),
   );
-  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.vision' && o.parent === 'pages.home'));
-  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.prds' && o.inlineDatabase === 'dbs.prds'));
+  assert.ok(
+    refs.iaGraph.objects.some(
+      (o) => o.key === 'dbs.prds' && o.parent === 'pages.home' && o.inline === true,
+    ),
+  );
+  assert.ok(
+    refs.iaGraph.objects.some(
+      (o) => o.key === 'dbs.plans' && o.parent === 'pages.home' && o.inline === true,
+    ),
+  );
+  assert.ok(refs.iaGraph.kindToDatabase?.plan === 'dbs.plans');
   assert.ok(refs.catalogSchemas.schemas.plans.relations.some((r) => r.from === 'Specs (System model)'));
-  assert.match(refs.sidebar, /yellow_bg/);
+  assert.match(refs.sidebar, /stacked-on-home|no sidebar/i);
   assert.match(refs.manualChecklist, /Full width/);
 });
 
@@ -58,6 +62,15 @@ test('parseNotionRoot accepts dashed id and URL', () => {
     `https://www.notion.so/oh-my-doc-${dogfoodRoot.replaceAll('-', '')}`,
   );
   assert.equal(fromUrl.rootPageId, dogfoodRoot);
+});
+
+test('createContentSource and normalize reject supabase', () => {
+  assert.throws(() => createContentSource(/** @type {any} */ ('supabase')), /supabase.*removed/i);
+  assert.throws(
+    () => normalizeContentSource({ contentSource: { ssot: 'supabase' } }),
+    /supabase.*removed/i,
+  );
+  assert.equal(createContentSource('local').ssot, 'local');
 });
 
 test('local adopt writes explicit contentSource.local and packages/docs-ui', () => {
@@ -84,40 +97,31 @@ test('local adopt writes explicit contentSource.local and packages/docs-ui', () 
   }
 });
 
-test('notion planProvision uses details toggle and no sources page ensure', () => {
+test('notion planProvision uses stacked-on-home agent layout', () => {
   const first = planProvision({ skillRoot, notionRoot: dogfoodRoot });
   const second = planProvision({ skillRoot, notionRoot: dogfoodRoot });
   assert.equal(first.manifestDigest, second.manifestDigest);
-  assert.equal(first.manifest.sourcesStrategy, 'details-toggle-on-home');
+  assert.equal(first.manifest.sourcesStrategy, 'stacked-on-home');
   assert.ok(first.manifest.operations.length > 10);
   assert.ok(
-    !first.manifest.operations.some(
-      (op) => op.op === 'ensure_page' && (op.key === 'toggles.sources' || op.title === '데이터 원본'),
-    ),
+    !first.manifest.operations.some((op) => op.op === 'write_root_sources_index'),
   );
+  assert.ok(!first.manifest.operations.some((op) => op.op === 'ensure_page'));
   const mapHome = first.manifest.operations.find((op) => op.op === 'map_supplied_root');
   assert.ok(mapHome);
   assert.equal(mapHome.key, 'pages.home');
-  const sourcesIndex = first.manifest.operations.find((op) => op.op === 'write_root_sources_index');
-  assert.ok(sourcesIndex);
-  assert.equal(sourcesIndex.payload.strategy, 'details-toggle-on-home');
-  assert.equal(sourcesIndex.expectedParentKey, 'pages.home');
-  assert.match(sourcesIndex.payload.content, /<details>/);
-  assert.match(sourcesIndex.payload.content, /데이터 원본/);
 
   const bodyOps = first.manifest.operations.filter((op) => op.op === 'write_page_body');
-  assert.ok(bodyOps.length >= 18);
+  assert.equal(bodyOps.length, 1);
   const homeBody = bodyOps.find((op) => op.key === 'pages.home');
   assert.ok(homeBody);
-  assert.match(String(homeBody.payload.content), /<details>/);
-  assert.ok(
-    bodyOps
-      .filter((op) => op.key.startsWith('pages.'))
-      .every((op) => String(op.payload.content).includes('<columns>')),
-  );
+  assert.equal(homeBody.payload.template, 'stacked-on-home');
+  assert.doesNotMatch(String(homeBody.payload.content), /<columns>/);
+  assert.doesNotMatch(String(homeBody.payload.content), /<details>/);
+  assert.match(String(homeBody.payload.content), /<database\b[^>]*inline="true"/);
 
   const ensureOps = first.manifest.operations.filter(
-    (op) => op.op === 'ensure_page' || op.op === 'ensure_database' || op.op === 'map_supplied_root',
+    (op) => op.op === 'ensure_database' || op.op === 'map_supplied_root',
   );
   const results = ensureOps.map((op) => ({
     operationId: op.id,
@@ -148,7 +152,7 @@ test('notion planProvision uses details toggle and no sources page ensure', () =
     },
   });
   for (const op of replay.manifest.operations.filter(
-    (o) => o.op === 'ensure_page' || o.op === 'ensure_database' || o.op === 'map_supplied_root',
+    (o) => o.op === 'ensure_database' || o.op === 'map_supplied_root',
   )) {
     assert.equal(op.action, 'skip_or_update');
     assert.ok(op.mappedId);
@@ -167,58 +171,25 @@ test('notion planProvision uses details toggle and no sources page ensure', () =
         .filter((op) => op.op === 'set_inline')
         .map((op) => [op.key, true]),
     ),
-    chrome: Object.fromEntries(
-      first.manifest.operations
-        .filter((op) => op.op === 'write_page_body' && op.key.startsWith('pages.'))
-        .map((op) => [op.key, true]),
-    ),
+    chrome: { 'pages.home': true },
   };
   const validation = validateSnapshot({ manifest: first.manifest, snapshot });
   assert.equal(validation.ok, true);
 });
 
-test('sidebar renderer highlights active nested section', () => {
-  const refs = loadNotionReferences(skillRoot);
-  const mappings = Object.fromEntries(
-    refs.iaGraph.nav.topLevel.concat(refs.iaGraph.nav.nested['pages.spec']).map((key) => [
-      key,
-      { url: `https://app.notion.com/p/${key}` },
-    ]),
-  );
-  const md = renderSidebarPageContent({
-    activeKey: 'pages.data-model',
-    mappings,
-    nav: refs.iaGraph.nav,
-    bodyMarkdown: '# Data model\nBody',
-    childBlocks: ['<database url="https://app.notion.com/p/db" inline="true">Data model</database>'],
-  });
-  assert.match(md, /<columns>/);
-  assert.match(md, /<details>/);
-  assert.match(
-    md,
-    /<summary><mention-page url="https:\/\/app\.notion\.com\/p\/pages\.spec"\/> \{color="yellow_bg"\}<\/summary>/,
-  );
-  assert.match(
-    md,
-    /\t\t\t\t- <mention-page url="https:\/\/app\.notion\.com\/p\/pages\.data-model"\/> \{color="yellow_bg"\}/,
-  );
-  assert.match(md, /ratio="80">[\s\S]*inline="true"[\s\S]*<\/column>\s*<\/columns>/);
-  assert.doesNotMatch(md, /<\/columns>\s*<database/);
-});
-
 test('validateMapping rejects wrong type/parent', () => {
   const ok = validateMapping({
-    key: 'pages.prds',
-    mapping: { id: 'abc', type: 'page', parentKey: 'pages.planning' },
-    expectedType: 'page',
-    expectedParentKey: 'pages.planning',
+    key: 'dbs.prds',
+    mapping: { id: 'abc', type: 'database', parentKey: 'pages.home' },
+    expectedType: 'database',
+    expectedParentKey: 'pages.home',
   });
   assert.equal(ok.ok, true);
   const bad = validateMapping({
-    key: 'pages.prds',
-    mapping: { id: 'abc', type: 'database', parentKey: 'root' },
-    expectedType: 'page',
-    expectedParentKey: 'pages.planning',
+    key: 'dbs.prds',
+    mapping: { id: 'abc', type: 'page', parentKey: 'root' },
+    expectedType: 'database',
+    expectedParentKey: 'pages.home',
   });
   assert.equal(bad.ok, false);
   assert.ok(bad.problems.some((p) => p.code === 'mapping_conflict'));
@@ -292,18 +263,32 @@ test('planCreateDocument targets dbs.plans for plan kind', () => {
     skillRoot,
     kind: 'plan',
     title: 'Example plan',
-    id: 'PLAN-example',
   });
   assert.equal(planned.ok, true);
   assert.equal(planned.operation.key, 'dbs.plans');
   assert.equal(planned.operation.payload.databaseKey, 'dbs.plans');
   assert.equal(planned.operation.expectedParentKey, 'dbs.plans');
+  assert.equal(planned.operation.payload.autoIdProperty, 'OMD ID');
+  assert.equal(planned.operation.payload.properties.Title, 'Example plan');
+  assert.equal(planned.operation.payload.omdId, undefined);
 
   const prd = planCreateDocument({
     skillRoot,
     kind: 'prd',
     title: 'Example PRD',
-    id: 'PRD-example',
   });
   assert.equal(prd.operation.key, 'dbs.prds');
+});
+
+test('catalog OMD ID is unique_id with kind prefixes', () => {
+  const refs = loadNotionReferences(skillRoot);
+  assert.equal(refs.catalogSchemas.schemaVersion, '1.1');
+  for (const schema of Object.values(refs.catalogSchemas.schemas)) {
+    const omd = schema.properties.find((p) => p.name === 'OMD ID');
+    assert.ok(omd, 'OMD ID property required');
+    assert.equal(omd.type, 'unique_id');
+    assert.ok(omd.prefix, 'unique_id prefix required');
+  }
+  assert.equal(refs.catalogSchemas.schemas.prds.properties.find((p) => p.name === 'OMD ID').prefix, 'PRD');
+  assert.equal(refs.catalogSchemas.schemas.plans.properties.find((p) => p.name === 'OMD ID').prefix, 'PLAN');
 });

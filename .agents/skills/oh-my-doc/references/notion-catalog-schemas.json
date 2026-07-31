@@ -1,15 +1,16 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
+  "note": "OMD ID is Notion UNIQUE_ID (auto-generated). Never set it on create/update. Prefixes mirror former catalog slug kinds.",
   "sharedProperties": [
     { "name": "Title", "type": "title" },
-    { "name": "OMD ID", "type": "rich_text" },
+    { "name": "OMD ID", "type": "unique_id" },
     { "name": "Summary", "type": "rich_text" }
   ],
   "schemas": {
     "glossary": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "TERM" },
         { "name": "Summary", "type": "rich_text" }
       ],
       "relations": []
@@ -17,7 +18,7 @@
     "models": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "MODEL" },
         { "name": "Summary", "type": "rich_text" }
       ],
       "relations": []
@@ -25,7 +26,7 @@
     "policies": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "POLICY" },
         { "name": "Summary", "type": "rich_text" }
       ],
       "relations": []
@@ -33,7 +34,7 @@
     "prds": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "PRD" },
         { "name": "Summary", "type": "rich_text" },
         {
           "name": "Status",
@@ -47,7 +48,7 @@
     "stories": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "US" },
         { "name": "Summary", "type": "rich_text" },
         { "name": "PRDs", "type": "relation", "relationSchema": "prds" }
       ],
@@ -56,7 +57,7 @@
     "plans": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "PLAN" },
         { "name": "Summary", "type": "rich_text" },
         {
           "name": "Stage",
@@ -71,29 +72,42 @@
         { "name": "codeAreas", "type": "multi_select" },
         { "name": "PRD", "type": "relation", "relationSchema": "prds" },
         { "name": "Stories", "type": "relation", "relationSchema": "stories" },
-        { "name": "Specs", "type": "relation", "relationSchema": "specs", "toDatabaseKey": "dbs.data-model" },
+        { "name": "Specs", "type": "relation", "relationSchema": "data-model", "toDatabaseKey": "dbs.data-model" },
         {
           "name": "Specs (System model)",
           "type": "relation",
-          "relationSchema": "specs",
+          "relationSchema": "system-model",
           "toDatabaseKey": "dbs.system-model"
         }
       ],
       "relations": [
         { "from": "PRD", "toSchema": "prds", "toDatabaseKey": "dbs.prds" },
         { "from": "Stories", "toSchema": "stories", "toDatabaseKey": "dbs.stories" },
-        { "from": "Specs", "toSchema": "specs", "toDatabaseKey": "dbs.data-model" },
+        { "from": "Specs", "toSchema": "data-model", "toDatabaseKey": "dbs.data-model" },
         {
           "from": "Specs (System model)",
-          "toSchema": "specs",
+          "toSchema": "system-model",
           "toDatabaseKey": "dbs.system-model"
         }
       ]
     },
-    "specs": {
+    "data-model": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "DM" },
+        { "name": "Summary", "type": "rich_text" },
+        {
+          "name": "Stage",
+          "type": "select",
+          "options": ["draft", "accepted", "superseded"]
+        }
+      ],
+      "relations": []
+    },
+    "system-model": {
+      "properties": [
+        { "name": "Title", "type": "title" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "SYSM" },
         { "name": "Summary", "type": "rich_text" },
         {
           "name": "Stage",
@@ -106,7 +120,7 @@
     "adrs": {
       "properties": [
         { "name": "Title", "type": "title" },
-        { "name": "OMD ID", "type": "rich_text" },
+        { "name": "OMD ID", "type": "unique_id", "prefix": "ADR" },
         { "name": "Summary", "type": "rich_text" },
         {
           "name": "Stage",

@@ -7,7 +7,7 @@ import { join } from 'node:path';
  */
 export function loadNotionReferences(skillRoot) {
   const dir = join(skillRoot, 'references');
-  const iaGraph = JSON.parse(readFileSync(join(dir, 'handbook-ia-graph.json'), 'utf8'));
+  const iaGraph = JSON.parse(readFileSync(join(dir, 'notion-ia-graph.json'), 'utf8'));
   return {
     dir,
     iaGraph,
